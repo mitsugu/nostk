@@ -7,6 +7,7 @@ import (
     "errors"
     "net/url"
     "strings"
+    "context"
     "io/ioutil"
     "github.com/nbd-wtf/go-nostr"
     "github.com/nbd-wtf/go-nostr/nip19"
@@ -56,8 +57,18 @@ func main() {
       if err := clearRelay(); err!=nil {
         log.Fatal(err)
       }
+    case "pubMessage":
+      if len(os.Args)<3 {
+      fmt.Println("Nothing text message.")
+        log.Fatal(errors.New("Not set text message"))
+        os.Exit(1)
+      }
+      if err := publishMessage(os.Args[2]); err!=nil {
+        log.Fatal(err)
+      }
   }
 }
+
 /*
   dispHelp {{{
 */
@@ -70,6 +81,7 @@ func dispHelp() {
     strListRelay = "        lsRelay : Show relay list"
     strRmRelay = "        rmRelay <relay's URL> : remove relay to nostk\n            ex) nostk rmRelay wss://relay.nostr.wirednet.jp"
     strClearRelays = "        clearRelay : Clear relay list"
+    strPublishMessage = "        pubMessage <text message>: Publish message to relays."
   )
 
   fmt.Println(usage)
@@ -79,6 +91,7 @@ func dispHelp() {
   fmt.Println(strListRelay)
   fmt.Println(strRmRelay)
   fmt.Println(strClearRelays)
+  fmt.Println(strPublishMessage)
 }
 // }}}
 
@@ -277,6 +290,62 @@ func clearRelay() error {
 // }}}
 
 /*
+  publishMessage {{{
+*/
+func publishMessage(s string) error {
+  var rl [] string
+
+  if len(s)<1 {
+    fmt.Println("Nothing text message.")
+    return errors.New("Not set text message")
+  }
+  sk, err := readPrivateKey()
+  if err!=nil {
+    fmt.Println("Nothing key pair. Make key pair.")
+    return err
+  }
+  pk, err := nostr.GetPublicKey(sk)
+  if err!=nil {
+    return err
+  }
+
+  if err := getRelayList(&rl);err!=nil {
+    fmt.Println("Nothing relay list. Make a relay list.")
+    return err
+  }
+
+  ev := nostr.Event{
+    PubKey:    pk,
+    CreatedAt: nostr.Now(),
+    Kind:      nostr.KindTextNote,
+    Tags:      nil,
+    Content:   s,
+  }
+
+  // calling Sign sets the event ID field and the event Sig field
+  ev.Sign(sk)
+
+  // publish the event to two relays
+  ctx := context.Background()
+  for _, url := range rl {
+    relay, err := nostr.RelayConnect(ctx, url)
+    if err != nil {
+      fmt.Println(err)
+      continue
+    }
+    _, err = relay.Publish(ctx, ev)
+    if err != nil {
+      fmt.Println(err)
+      continue
+    }
+    fmt.Printf("published to %s\n", url)
+  }
+
+  return nil
+}
+// }}}
+
+/*
   getDir {{{
 */
 func getDir() ( string, error ) {
@@ -356,6 +425,30 @@ func saveRelays(rl []string) error {
     }
   }
   return nil
+}
+// }}}
+
+/*
+  readPrivateKey {{{
+*/
+func readPrivateKey() (string, error) {
+  var k [] string
+  dir, err :=getDir()
+  if err!=nil {
+    return "", err
+  }
+  path := dir+"/"+hsec
+  if _, err := os.Stat(path); err!=nil {
+    return "", err
+  }
+  b, err := ioutil.ReadFile(path)
+  rs := strings.Split(string(b),"\n")
+  for _, r := range rs {
+    if r!="" {  // 最終行の\nにより発生する余分なレコードを排除
+      k = append(k, r)
+    }
+  }
+  return k[0], nil
 }
 // }}}
 
