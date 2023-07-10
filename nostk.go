@@ -19,9 +19,6 @@ const (
   hpub = ".hpub"
   npub = ".npub"
   relays = "relays.list"
-  usage       = "Usage :\n  nostk <sub-command> [param...]"
-  subcommand  = "    sub-command :"
-  genkey      = "      genkey : create Prive Key and Public Key"
 )
 
 /*
@@ -29,12 +26,16 @@ const (
 */
 func main() {
   if len(os.Args)<2 {
-    fmt.Println(usage)
-    fmt.Println(subcommand)
-    fmt.Println(genkey)
+    dispHelp()
     os.Exit(0)
   }
   switch os.Args[1] {
+    case "help":
+      dispHelp()
+    case "--help":
+      dispHelp()
+    case "-h":
+      dispHelp()
     case "genkey":
       if err := genKey(); err!=nil {
         log.Fatal(err)
@@ -48,10 +49,38 @@ func main() {
         log.Fatal(err)
       }
     case "rmRelay":
+      if err := rmRelay(os.Args[2]); err!=nil {
+        log.Fatal(err)
+      }
     case "clearRelay":
+      if err := clearRelay(); err!=nil {
+        log.Fatal(err)
+      }
   }
 }
-//
+/*
+  dispHelp {{{
+*/
+func dispHelp() {
+  const (
+    usage = "Usage :\n  nostk <sub-command> [param...]"
+    subcommand = "    sub-command :"
+    genkey = "        genkey : create Prive Key and Public Key"
+    strAddRelay = "        addRelay <relay's URL> : add relay to nostk\n            ex) nostk addRelay wss://relay.nostr.wirednet.jp"
+    strListRelay = "        lsRelay : Show relay list"
+    strRmRelay = "        rmRelay <relay's URL> : remove relay to nostk\n            ex) nostk rmRelay wss://relay.nostr.wirednet.jp"
+    strClearRelays = "        clearRelay : Clear relay list"
+  )
+
+  fmt.Println(usage)
+  fmt.Println(subcommand)
+  fmt.Println(genkey)
+  fmt.Println(strAddRelay)
+  fmt.Println(strListRelay)
+  fmt.Println(strRmRelay)
+  fmt.Println(strClearRelays)
+}
+// }}}
 
 /*
   Generated Key Pair {{{
@@ -200,6 +229,54 @@ func addRelay(r string) error {
 // }}}
 
 /*
+  rmRelay {{{
+*/
+func rmRelay(r string) error {
+  var rl [] string
+  var tmp [] string
+  dirName, err := getDir()
+  if err != nil {
+    return err
+  }
+  path := dirName+"/"+relays
+  if _, err := os.Stat(path); err!=nil {
+    return nil
+  }
+  if err := getRelayList(&rl); err!=nil {
+    return err
+  }
+  for _, rs := range rl {
+    if r!=rs {
+      tmp = append(tmp,rs)
+    }
+  }
+  if err := saveRelays(tmp); err!=nil {
+    return err
+  }
+  return nil
+}
+// }}}
+
+/*
+  clearRelay {{{
+*/
+func clearRelay() error {
+  dirName, err := getDir()
+  if err != nil {
+    return err
+  }
+  path := dirName+"/"+relays
+  if _, err := os.Stat(path); err!=nil {
+    return nil
+  }
+  if err := os.Remove(path); err!=nil {
+    return err
+  }
+  return nil
+}
+// }}}
+
+/*
   getDir {{{
 */
 func getDir() ( string, error ) {
@@ -258,7 +335,7 @@ func getRelayList(rl *[]string) error {
 // }}}
 
 /*
-  saveRelays ( Not yet test ) {{{
+  saveRelays {{{
 */
 func saveRelays(rl []string) error {
   dn, err := getDir()
