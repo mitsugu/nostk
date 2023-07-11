@@ -6,7 +6,6 @@ import (
     "os"
     "os/exec"
     "errors"
-    "net/url"
     "strings"
     "context"
     "io/ioutil"
@@ -21,8 +20,8 @@ const (
   nsec = ".nsec"
   hpub = ".hpub"
   npub = ".npub"
-  relays = "relays.list"
-  profile = "profile"
+  relays = "relays.json"
+  profile = "profile.json"
 )
 
 type ProfileMetadata struct {
@@ -34,6 +33,11 @@ type ProfileMetadata struct {
   Banner      string `json:"banner"`
   NIP05       string `json:"nip05"`
   LUD16       string `json:"lud16"`
+}
+
+type RwFlag struct {
+  Read  bool `json:"read"`
+  Write bool `json:"write"`
 }
 
 /*
@@ -59,20 +63,20 @@ func main() {
       if err := genKey(); err!=nil {
         log.Fatal(err)
       }
-    case "addRelay":
-      if err := addRelay(os.Args[2]); err!=nil {
-        log.Fatal(err)
-      }
     case "lsRelays":
       if err := listRelays(); err!=nil {
         log.Fatal(err)
       }
-    case "rmRelay":
-      if err := rmRelay(os.Args[2]); err!=nil {
+    case "editRelays":
+      if err := editRelayList(); err!=nil {
         log.Fatal(err)
       }
-    case "clearRelay":
-      if err := clearRelay(); err!=nil {
+    case "editProfile":
+      if err:=editProfile();err!=nil {
+        log.Fatal(err)
+      }
+    case "pubProfile":
+      if err := publishProfile(); err!=nil {
         log.Fatal(err)
       }
     case "pubMessage":
@@ -84,14 +88,6 @@ func main() {
       if err := publishMessage(os.Args[2]); err!=nil {
         log.Fatal(err)
       }
-    case "editProfile":
-      if err:=editProfile();err!=nil {
-        log.Fatal(err)
-      }
-    case "pubProfile":
-      if err := publishProfile(); err!=nil {
-        log.Fatal(err)
-      }
   }
 }
 
@@ -100,30 +96,47 @@ func main() {
 */
 func dispHelp() {
   const (
-    usage = "Usage :\n  nostk <sub-command> [param...]"
-    subcommand = "    sub-command :"
-    strInit = "        init : Initializing the nostk environment"
-    genkey = "        genkey : create Prive Key and Public Key"
-    strAddRelay = "        addRelay <relay's URL> : add relay to nostk\n            ex) nostk addRelay wss://relay.nostr.wirednet.jp"
-    strListRelay = "        lsRelay : Show relay list"
-    strRmRelay = "        rmRelay <relay's URL> : remove relay to nostk\n            ex) nostk rmRelay wss://relay.nostr.wirednet.jp"
-    strClearRelays = "        clearRelay : Clear relay list"
+    usage             = "Usage :\n  nostk <sub-command> [param...]"
+    subcommand        = "    sub-command :"
+    strInit           = "        init : Initializing the nostk environment"
+    genkey            = "        genkey : create Prive Key and Public Key"
+    strListRelay      = "        lsRelay : Show relay list"
+    strEditRelay      = "        editRelays : edit relay list."
+    strEditProfile    = "        editProfile : Edit your profile."
+    strPublishProfile = "        pubProfile: Publish your profile."
     strPublishMessage = "        pubMessage <text message>: Publish message to relays."
-    strEditProfile= "        editProfile : Edit your profile."
-    strPublishProfile= "        pubProfile <-n user_name> [-a about you text] [-u your icon image URL]: Publish your profile."
   )
 
   fmt.Println(usage)
   fmt.Println(subcommand)
   fmt.Println(strInit)
   fmt.Println(genkey)
-  fmt.Println(strAddRelay)
   fmt.Println(strListRelay)
-  fmt.Println(strRmRelay)
-  fmt.Println(strClearRelays)
-  fmt.Println(strPublishMessage)
+  fmt.Println(strEditRelay)
   fmt.Println(strEditProfile)
   fmt.Println(strPublishProfile)
+  fmt.Println(strPublishMessage)
+}
+// }}}
+
+/*
+  initEnv {{{
+*/
+func initEnv() error {
+  // make .nostk directory
+  dir, err := getDir()
+  if err!=nil {
+    return err
+  }
+  // make skeleton of user profile
+  if err := createProfile(dir); err!=nil {
+    return err
+  }
+  // make skeleton of user profile
+  if err := createRelayList(dir); err!=nil {
+    return err
+  }
+  return nil
 }
 // }}}
 
@@ -228,94 +241,131 @@ func saveNPubKey(dn string, nkey string) error {
   Listing Relays {{{
 */
 func listRelays() error {
-  var rl [] string
-  dirName, err := getDir()
-  if err != nil {
+  p := make(map[string]RwFlag)
+  b, err := readRelayList()
+  if err!=nil {
     return err
   }
-  path := dirName+"/"+relays
+  err = json.Unmarshal([]byte(b),&p)
+  if err!=nil {
+    return err
+  }
+  for i:= range p {
+    fmt.Printf("%v R:%v W:%v\n",i,p[i].Read, p[i].Write)
+  }
+  return nil
+}
+// }}}
+
+/*
+  editRelayList {{{
+*/
+func editRelayList()error{
+  e := os.Getenv("EDITOR")
+  if e == "" {
+    return errors.New("Not set EDITOR environmental variables")
+  }
+  d, err := getDir()
+  if err!=nil {
+    return err
+  }
+  path := d+"/"+relays
   if _, err := os.Stat(path); err!=nil {
+    fmt.Println("Not found relay list. Use \"nostk init\"")
+    return errors.New("Not found relay list")
+  }
+  c := exec.Command(e, path)
+  c.Stdin = os.Stdin
+  c.Stdout = os.Stdout
+  c.Stderr = os.Stderr
+  if err :=c.Run(); err!=nil {
+    return err
+  }
+
+  return nil
+}
+// }}}
+
+/*
+  editProfile {{{
+*/
+func editProfile()error{
+  e := os.Getenv("EDITOR")
+  if e == "" {
+    return errors.New("Not set EDITOR environmental variables")
+  }
+  d, err := getDir()
+  if err!=nil {
+    return err
+  }
+  path := d+"/"+profile
+  if _, err := os.Stat(path); err!=nil {
+    fmt.Println("Not found profile file.")
+    return errors.New("Not found profile file")
+  }
+  c := exec.Command(e, path)
+  c.Stdin = os.Stdin
+  c.Stdout = os.Stdout
+  c.Stderr = os.Stderr
+  if err :=c.Run(); err!=nil {
+    return err
+  }
+
+  return nil
+}
+// }}}
+
+/*
+  publishProfile {{{
+*/
+func publishProfile() error {
+  var rl [] string
+  s, err := readProfile()
+  if err != nil {
+    fmt.Println("Not found your profile. Use \"nostk init\" and \"nostk editProfile\".")
+    return err
+  }
+fmt.Println(s)
+  sk, err := readPrivateKey()
+  if err!=nil {
+    fmt.Println("Nothing key pair. Make key pair.")
+    return err
+  }
+  pk, err := nostr.GetPublicKey(sk)
+  if err!=nil {
+    return err
+  }
+
+  if err := getRelayList(&rl);err!=nil {
     fmt.Println("Nothing relay list. Make a relay list.")
     return err
   }
-  if err := getRelayList(&rl); err!=nil {
-    return err
-  }
-  for _, r := range rl {
-    fmt.Println(r)
-  }
-  return nil
-}
-// }}}
 
-/*
-  Add Relay {{{
-*/
-func addRelay(r string) error {
-  var rl [] string
-  u, err := url.Parse(r)
-  if err!=nil {
-    return err
+  ev := nostr.Event{
+    PubKey:    pk,
+    CreatedAt: nostr.Now(),
+    Kind:      nostr.KindSetMetadata,
+    Tags:      nil,
+    Content:   string(s),
   }
-  if u.Scheme!="wss" {
-    return errors.New("Not wss scheme.")
-  }
-  if err := getRelayList(&rl); err!=nil {
-    return err
-  }
-  rl = append(rl, r)
-  rmDuplication(&rl)
-  err = saveRelays(rl)
-  if err!=nil {
-    return err
-  }
-  return nil
-}
-// }}}
 
-/*
-  rmRelay {{{
-*/
-func rmRelay(r string) error {
-  var rl [] string
-  var tmp [] string
-  dirName, err := getDir()
-  if err != nil {
-    return err
-  }
-  path := dirName+"/"+relays
-  if _, err := os.Stat(path); err!=nil {
-    return nil
-  }
-  if err := getRelayList(&rl); err!=nil {
-    return err
-  }
-  for _, rs := range rl {
-    if r!=rs {
-      tmp = append(tmp,rs)
+  // calling Sign sets the event ID field and the event Sig field
+  ev.Sign(sk)
+
+  // publish the event to two relays
+  ctx := context.Background()
+  for _, url := range rl {
+    relay, err := nostr.RelayConnect(ctx, url)
+    if err != nil {
+      fmt.Println(err)
+      continue
     }
-  }
-  if err := saveRelays(tmp); err!=nil {
-    return err
-  }
-  return nil
-}
-// }}}
-
-/*
-  clearRelay {{{
-*/
-func clearRelay() error {
-  dirName, err := getDir()
-  if err != nil {
-    return err
-  }
-  path := dirName+"/"+relays
-  if _, err := os.Stat(path); err!=nil {
-    return nil
-  }
-  if err := os.Remove(path); err!=nil {
-    return err
+    _, err = relay.Publish(ctx, ev)
+    if err != nil {
+      fmt.Println(err)
+      continue
+    }
+    fmt.Printf("published to %s\n", url)
   }
   return nil
 }
@@ -378,108 +428,6 @@ func publishMessage(s string) error {
 // }}}
 
 /*
-  editProfile {{{
-*/
-func editProfile()error{
-  e := os.Getenv("EDITOR")
-  if e == "" {
-    return errors.New("Not set EDITOR environmental variables")
-  }
-  d, err := getDir()
-  if err!=nil {
-    return err
-  }
-  path := d+"/"+profile
-  if _, err := os.Stat(path); err!=nil {
-    fmt.Println("Not found profile file.")
-    return errors.New("Not found profile file")
-  }
-  c := exec.Command(e, path)
-  c.Stdin = os.Stdin
-  c.Stdout = os.Stdout
-  c.Stderr = os.Stderr
-  if err :=c.Run(); err!=nil {
-    return err
-  }
-
-  return nil
-}
-// }}}
-
-/*
-  publishProfile {{{
-*/
-func publishProfile() error {
-  var rl [] string
-  s, err := readProfile()
-  if err != nil {
-    fmt.Println("Not found your profile. Use \"nostk init\" and \"nostk editProfile\".")
-    return err
-  }
-
-  sk, err := readPrivateKey()
-  if err!=nil {
-    fmt.Println("Nothing key pair. Make key pair.")
-    return err
-  }
-  pk, err := nostr.GetPublicKey(sk)
-  if err!=nil {
-    return err
-  }
-
-  if err := getRelayList(&rl);err!=nil {
-    fmt.Println("Nothing relay list. Make a relay list.")
-    return err
-  }
-
-  ev := nostr.Event{
-    PubKey:    pk,
-    CreatedAt: nostr.Now(),
-    Kind:      nostr.KindSetMetadata,
-    Tags:      nil,
-    Content:   string(s),
-  }
-
-  // calling Sign sets the event ID field and the event Sig field
-  ev.Sign(sk)
-
-  // publish the event to two relays
-  ctx := context.Background()
-  for _, url := range rl {
-    relay, err := nostr.RelayConnect(ctx, url)
-    if err != nil {
-      fmt.Println(err)
-      continue
-    }
-    _, err = relay.Publish(ctx, ev)
-    if err != nil {
-      fmt.Println(err)
-      continue
-    }
-    fmt.Printf("published to %s\n", url)
-  }
-  return nil
-}
-// }}}
-
-/*
-  initEnv {{{
-*/
-func initEnv() error {
-  // make .nostk directory
-  dir, err := getDir()
-  if err!=nil {
-    return err
-  }
-  // make skeleton of user profile
-  if err := createProfile(dir); err!=nil {
-    return err
-  }
-  return nil
-}
-// }}}
-
-/*
   getDir {{{
 */
 func getDir() ( string, error ) {
@@ -498,40 +446,20 @@ func getDir() ( string, error ) {
 // }}}
 
 /*
-  rmDuplication {{{
-*/
-func rmDuplication(rl *[]string) {
-  m := make(map[string]bool)
-  uniq := [] string{}
-
-  for _, ele := range *rl {
-    if !m[ele] {
-      m[ele] = true
-      uniq = append(uniq, ele)
-    }
-  }
-  *rl = append(uniq)
-}
-// }}}
-
-/*
   getRelayList {{{
 */
 func getRelayList(rl *[]string) error {
-  dir, err := getDir()
+  p := make(map[string]RwFlag)
+  b, err := readRelayList()
   if err!=nil {
     return err
   }
-  path := dir+"/"+relays
-  if _, err := os.Stat(path); err!=nil {
-    return nil
+  err = json.Unmarshal([]byte(b),&p)
+  if err!=nil {
+    return err
   }
-  b, err := ioutil.ReadFile(path)
-  rs := strings.Split(string(b),"\n")
-  for _, r := range rs {
-    if r!="" {  // 最終行の\nにより発生する余分なレコードを排除
-      *rl = append(*rl, r)
-    }
+  for i:= range p {
+    *rl = append(*rl, i)
   }
   return nil
 }
@@ -610,10 +538,34 @@ func createProfile(d string) error {
 // }}}
 
 /*
+  createRelayList {{{
+*/
+func createRelayList(d string) error {
+  p := make(map[string]RwFlag)
+  p[""] = RwFlag{true,true}
+
+  s, err := json.Marshal(p)
+  if err!=nil {
+    return err
+  }
+  path := d+"/"+relays
+  fp, err := os.Create(path)
+  if err != nil {
+    return err
+  }
+  defer fp.Close()
+  _,err = fp.WriteString(string(s))
+  if err!=nil {
+    return err
+  }
+  return nil
+}
+// }}}
+
+/*
   readProfile {{{
 */
 func readProfile() (string,error) {
-  var k [] string
   d, err :=getDir()
   if err!=nil {
     return "", err
@@ -623,13 +575,30 @@ func readProfile() (string,error) {
     return "", err
   }
   b, err := ioutil.ReadFile(path)
-  rs := strings.Split(string(b),"\n")
-  for _, r := range rs {
-    if r!="" {  // 最終行の\nにより発生する余分なレコードを排除
-      k = append(k, r)
-    }
+  r := strings.ReplaceAll(string(b), "\n", "")
+  return r, nil
+}
+//}}}
+
+/*
+  readRelayList {{{
+*/
+func readRelayList() (string, error) {
+  //var k [] string
+  d, err :=getDir()
+  if err!=nil {
+    return "", err
   }
-  return k[0], nil
+  path := d+"/"+relays
+  if _, err := os.Stat(path); err!=nil {
+    return "", err
+  }
+  b, err := ioutil.ReadFile(path)
+  if err!=nil {
+    return "", err
+  }
+  r := strings.ReplaceAll(string(b), "\n", "")
+  return r, nil
 }
 //}}}
 
