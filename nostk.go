@@ -325,7 +325,6 @@ func publishProfile() error {
     fmt.Println("Not found your profile. Use \"nostk init\" and \"nostk editProfile\".")
     return err
   }
-fmt.Println(s)
   sk, err := readPrivateKey()
   if err!=nil {
     fmt.Println("Nothing key pair. Make key pair.")
