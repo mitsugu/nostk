@@ -89,32 +89,7 @@ func main() {
         log.Fatal(err)
       }
     case "pubProfile":
-      if len(os.Args)<4 {
-        fmt.Println("Nothing profile data.")
-        log.Fatal(errors.New("Not set profile data"))
-        os.Exit(1)
-      }
-      var (
-        n = ""
-        a = ""
-        u = ""
-      )
-      switch (len(os.Args)) {
-        case 3:
-          n = os.Args[2]
-          a = ""
-          u = ""
-        case 4:
-          n = os.Args[2]
-          a = os.Args[3]
-          u = ""
-        case 5:
-          n = os.Args[2]
-          a = os.Args[3]
-          u = os.Args[4]
-      }
-
-      if err := publishProfile(n,a,u); err!=nil {
+      if err := publishProfile(); err!=nil {
         log.Fatal(err)
       }
   }
@@ -432,24 +407,15 @@ func editProfile()error{
 // }}}
 
 /*
-  publishProfile ( abolition ) {{{
+  publishProfile {{{
 */
-func publishProfile(n string, a string, u string ) error {
+func publishProfile() error {
   var rl [] string
-
-  p := ProfileMetadata{
-    n,
-    n,
-    a,
-    "https://orzbruford.nobody.jp/",
-    u,
-    "https://i.imgur.com/YBKHpcE.jpg",
-    "",
-    ""}
-	s, err := json.Marshal(p)
-	if err != nil {
-		return err
-	}
+  s, err := readProfile()
+  if err != nil {
+    fmt.Println("Not found your profile. Use \"nostk init\" and \"nostk editProfile\".")
+    return err
+  }
 
   sk, err := readPrivateKey()
   if err!=nil {
@@ -642,4 +608,28 @@ func createProfile(d string) error {
   return nil
 }
 // }}}
+
+/*
+  readProfile {{{
+*/
+func readProfile() (string,error) {
+  var k [] string
+  d, err :=getDir()
+  if err!=nil {
+    return "", err
+  }
+  path := d+"/"+profile
+  if _, err := os.Stat(path); err!=nil {
+    return "", err
+  }
+  b, err := ioutil.ReadFile(path)
+  rs := strings.Split(string(b),"\n")
+  for _, r := range rs {
+    if r!="" {  // 最終行の\nにより発生する余分なレコードを排除
+      k = append(k, r)
+    }
+  }
+  return k[0], nil
+}
+//}}}
 
