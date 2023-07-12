@@ -1,603 +1,618 @@
 package main
 
 import (
-    "log"
-    "fmt"
-    "os"
-    "os/exec"
-    "errors"
-    "strings"
-    "context"
-    "io/ioutil"
-    "encoding/json"
-    "github.com/nbd-wtf/go-nostr"
-    "github.com/nbd-wtf/go-nostr/nip19"
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"github.com/nbd-wtf/go-nostr"
+	"github.com/nbd-wtf/go-nostr/nip19"
+	"io/ioutil"
+	"log"
+	"os"
+	"os/exec"
+	"strings"
 )
 
 const (
-  secretDir = "/.nostk"
-  hsec = ".hsec"
-  nsec = ".nsec"
-  hpub = ".hpub"
-  npub = ".npub"
-  relays = "relays.json"
-  profile = "profile.json"
+	secretDir = "/.nostk"
+	hsec      = ".hsec"
+	nsec      = ".nsec"
+	hpub      = ".hpub"
+	npub      = ".npub"
+	relays    = "relays.json"
+	profile   = "profile.json"
 )
 
 type ProfileMetadata struct {
-  Name        string `json:"name"`
-  DisplayName string `json:"display_name"`
-  About       string `json:"about"`
-  Website     string `json:"website"`
-  Picture     string `json:"picture"`
-  Banner      string `json:"banner"`
-  NIP05       string `json:"nip05"`
-  LUD16       string `json:"lud16"`
+	Name        string `json:"name"`
+	DisplayName string `json:"display_name"`
+	About       string `json:"about"`
+	Website     string `json:"website"`
+	Picture     string `json:"picture"`
+	Banner      string `json:"banner"`
+	NIP05       string `json:"nip05"`
+	LUD16       string `json:"lud16"`
 }
 
 type RwFlag struct {
-  Read  bool `json:"read"`
-  Write bool `json:"write"`
+	Read  bool `json:"read"`
+	Write bool `json:"write"`
 }
 
 /*
-  main
+main
 */
 func main() {
-  if len(os.Args)<2 {
-    dispHelp()
-    os.Exit(0)
-  }
-  switch os.Args[1] {
-    case "help":
-      dispHelp()
-    case "--help":
-      dispHelp()
-    case "-h":
-      dispHelp()
-    case "init":
-      if err := initEnv(); err!=nil {
-        log.Fatal(err)
-      }
-    case "genkey":
-      if err := genKey(); err!=nil {
-        log.Fatal(err)
-      }
-    case "lsRelays":
-      if err := listRelays(); err!=nil {
-        log.Fatal(err)
-      }
-    case "editRelays":
-      if err := editRelayList(); err!=nil {
-        log.Fatal(err)
-      }
-    case "editProfile":
-      if err:=editProfile();err!=nil {
-        log.Fatal(err)
-      }
-    case "pubProfile":
-      if err := publishProfile(); err!=nil {
-        log.Fatal(err)
-      }
-    case "pubMessage":
-      if len(os.Args)<3 {
-      fmt.Println("Nothing text message.")
-        log.Fatal(errors.New("Not set text message"))
-        os.Exit(1)
-      }
-      if err := publishMessage(os.Args[2]); err!=nil {
-        log.Fatal(err)
-      }
-  }
+	if len(os.Args) < 2 {
+		dispHelp()
+		os.Exit(0)
+	}
+	switch os.Args[1] {
+	case "help":
+		dispHelp()
+	case "--help":
+		dispHelp()
+	case "-h":
+		dispHelp()
+	case "init":
+		if err := initEnv(); err != nil {
+			log.Fatal(err)
+		}
+	case "genkey":
+		if err := genKey(); err != nil {
+			log.Fatal(err)
+		}
+	case "lsRelays":
+		if err := listRelays(); err != nil {
+			log.Fatal(err)
+		}
+	case "editRelays":
+		if err := editRelayList(); err != nil {
+			log.Fatal(err)
+		}
+	case "editProfile":
+		if err := editProfile(); err != nil {
+			log.Fatal(err)
+		}
+	case "pubProfile":
+		if err := publishProfile(); err != nil {
+			log.Fatal(err)
+		}
+	case "pubMessage":
+		if len(os.Args) < 3 {
+			fmt.Println("Nothing text message.")
+			log.Fatal(errors.New("Not set text message"))
+			os.Exit(1)
+		}
+		if err := publishMessage(os.Args[2]); err != nil {
+			log.Fatal(err)
+		}
+	}
 }
 
 /*
-  dispHelp {{{
+dispHelp {{{
 */
 func dispHelp() {
-  const (
-    usage             = "Usage :\n  nostk <sub-command> [param...]"
-    subcommand        = "    sub-command :"
-    strInit           = "        init : Initializing the nostk environment"
-    genkey            = "        genkey : create Prive Key and Public Key"
-    strListRelay      = "        lsRelay : Show relay list"
-    strEditRelay      = "        editRelays : edit relay list."
-    strEditProfile    = "        editProfile : Edit your profile."
-    strPublishProfile = "        pubProfile: Publish your profile."
-    strPublishMessage = "        pubMessage <text message>: Publish message to relays."
-  )
+	const (
+		usage             = "Usage :\n  nostk <sub-command> [param...]"
+		subcommand        = "    sub-command :"
+		strInit           = "        init : Initializing the nostk environment"
+		genkey            = "        genkey : create Prive Key and Public Key"
+		strListRelay      = "        lsRelay : Show relay list"
+		strEditRelay      = "        editRelays : edit relay list."
+		strEditProfile    = "        editProfile : Edit your profile."
+		strPublishProfile = "        pubProfile: Publish your profile."
+		strPublishMessage = "        pubMessage <text message>: Publish message to relays."
+	)
 
-  fmt.Println(usage)
-  fmt.Println(subcommand)
-  fmt.Println(strInit)
-  fmt.Println(genkey)
-  fmt.Println(strListRelay)
-  fmt.Println(strEditRelay)
-  fmt.Println(strEditProfile)
-  fmt.Println(strPublishProfile)
-  fmt.Println(strPublishMessage)
+	fmt.Println(usage)
+	fmt.Println(subcommand)
+	fmt.Println(strInit)
+	fmt.Println(genkey)
+	fmt.Println(strListRelay)
+	fmt.Println(strEditRelay)
+	fmt.Println(strEditProfile)
+	fmt.Println(strPublishProfile)
+	fmt.Println(strPublishMessage)
 }
+
 // }}}
 
 /*
-  initEnv {{{
+initEnv {{{
 */
 func initEnv() error {
-  // make .nostk directory
-  dir, err := getDir()
-  if err!=nil {
-    return err
-  }
-  // make skeleton of user profile
-  if err := createProfile(dir); err!=nil {
-    return err
-  }
-  // make skeleton of user profile
-  if err := createRelayList(dir); err!=nil {
-    return err
-  }
-  return nil
+	// make .nostk directory
+	dir, err := getDir()
+	if err != nil {
+		return err
+	}
+	// make skeleton of user profile
+	if err := createProfile(dir); err != nil {
+		return err
+	}
+	// make skeleton of user profile
+	if err := createRelayList(dir); err != nil {
+		return err
+	}
+	return nil
 }
+
 // }}}
 
 /*
-  Generated Key Pair {{{
+Generated Key Pair {{{
 */
 func genKey() error {
-  dirName, err := getDir()
-  if err != nil {
-    return err
-  }
-  sk, pk, err := genHexKey()
-  if err!=nil {
-    return err
-  }
-  nsec, npub, err := genNKey(sk, pk)
-  if err!=nil {
-    return err
-  }
-  if err = saveHSecKey(dirName, sk); err!=nil {
-    return err
-  }
-  if err = saveHPubKey(dirName, pk); err!=nil {
-    return err
-  }
-  if err = saveNSecKey(dirName, nsec); err!=nil {
-    return err
-  }
-  if err = saveNPubKey(dirName, npub); err!=nil {
-    return err
-  }
-  return nil
+	dirName, err := getDir()
+	if err != nil {
+		return err
+	}
+	sk, pk, err := genHexKey()
+	if err != nil {
+		return err
+	}
+	nsec, npub, err := genNKey(sk, pk)
+	if err != nil {
+		return err
+	}
+	if err = saveHSecKey(dirName, sk); err != nil {
+		return err
+	}
+	if err = saveHPubKey(dirName, pk); err != nil {
+		return err
+	}
+	if err = saveNSecKey(dirName, nsec); err != nil {
+		return err
+	}
+	if err = saveNPubKey(dirName, npub); err != nil {
+		return err
+	}
+	return nil
 }
 
 func genHexKey() (string, string, error) {
-  sk := nostr.GeneratePrivateKey()
-  pk, err := nostr.GetPublicKey(sk)
-  if err != nil {
-    return "", "", err
-  }
-  return sk, pk, nil
+	sk := nostr.GeneratePrivateKey()
+	pk, err := nostr.GetPublicKey(sk)
+	if err != nil {
+		return "", "", err
+	}
+	return sk, pk, nil
 }
 
-func genNKey(sk string, pk string)(string, string, error) {
-  nsec, err := nip19.EncodePrivateKey(sk)
-  if err != nil {
-    return "", "", err
-  }
-  npub, err := nip19.EncodePublicKey(pk)
-  if err != nil {
-    return "", "", err
-  }
-  return nsec, npub, nil
+func genNKey(sk string, pk string) (string, string, error) {
+	nsec, err := nip19.EncodePrivateKey(sk)
+	if err != nil {
+		return "", "", err
+	}
+	npub, err := nip19.EncodePublicKey(pk)
+	if err != nil {
+		return "", "", err
+	}
+	return nsec, npub, nil
 }
 
 func saveHSecKey(dn string, sk string) error {
-  path := dn+"/"+hsec
-  fp, err := os.Create(path)
-  if err != nil {
-    return err
-  }
-  defer fp.Close()
-  fp.WriteString(sk)
-  return nil
+	path := dn + "/" + hsec
+	fp, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer fp.Close()
+	fp.WriteString(sk)
+	return nil
 }
 
 func saveNSecKey(dn string, nkey string) error {
-  path := dn+"/"+nsec
-  fp, err := os.Create(path)
-  if err != nil {
-    return err
-  }
-  defer fp.Close()
-  fp.WriteString(nkey)
-  return nil
+	path := dn + "/" + nsec
+	fp, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer fp.Close()
+	fp.WriteString(nkey)
+	return nil
 }
 
 func saveHPubKey(dn string, pk string) error {
-  path := dn+"/"+hpub
-  fp, err := os.Create(path)
-  if err != nil {
-    return err
-  }
-  defer fp.Close()
-  fp.WriteString(pk)
-  return nil
+	path := dn + "/" + hpub
+	fp, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer fp.Close()
+	fp.WriteString(pk)
+	return nil
 }
 
 func saveNPubKey(dn string, nkey string) error {
-  path := dn+"/"+npub
-  fp, err := os.Create(path)
-  if err != nil {
-    return err
-  }
-  defer fp.Close()
-  fp.WriteString(nkey)
-  return nil
+	path := dn + "/" + npub
+	fp, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer fp.Close()
+	fp.WriteString(nkey)
+	return nil
 }
+
 // }}}
 
 /*
-  Listing Relays {{{
+Listing Relays {{{
 */
 func listRelays() error {
-  p := make(map[string]RwFlag)
-  b, err := readRelayList()
-  if err!=nil {
-    return err
-  }
-  err = json.Unmarshal([]byte(b),&p)
-  if err!=nil {
-    return err
-  }
-  for i:= range p {
-    fmt.Printf("%v R:%v W:%v\n",i,p[i].Read, p[i].Write)
-  }
-  return nil
+	p := make(map[string]RwFlag)
+	b, err := readRelayList()
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal([]byte(b), &p)
+	if err != nil {
+		return err
+	}
+	for i := range p {
+		fmt.Printf("%v R:%v W:%v\n", i, p[i].Read, p[i].Write)
+	}
+	return nil
 }
+
 // }}}
 
 /*
-  editRelayList {{{
+editRelayList {{{
 */
-func editRelayList()error{
-  e := os.Getenv("EDITOR")
-  if e == "" {
-    return errors.New("Not set EDITOR environmental variables")
-  }
-  d, err := getDir()
-  if err!=nil {
-    return err
-  }
-  path := d+"/"+relays
-  if _, err := os.Stat(path); err!=nil {
-    fmt.Println("Not found relay list. Use \"nostk init\"")
-    return errors.New("Not found relay list")
-  }
-  c := exec.Command(e, path)
-  c.Stdin = os.Stdin
-  c.Stdout = os.Stdout
-  c.Stderr = os.Stderr
-  if err :=c.Run(); err!=nil {
-    return err
-  }
+func editRelayList() error {
+	e := os.Getenv("EDITOR")
+	if e == "" {
+		return errors.New("Not set EDITOR environmental variables")
+	}
+	d, err := getDir()
+	if err != nil {
+		return err
+	}
+	path := d + "/" + relays
+	if _, err := os.Stat(path); err != nil {
+		fmt.Println("Not found relay list. Use \"nostk init\"")
+		return errors.New("Not found relay list")
+	}
+	c := exec.Command(e, path)
+	c.Stdin = os.Stdin
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+	if err := c.Run(); err != nil {
+		return err
+	}
 
-  return nil
+	return nil
 }
+
 // }}}
 
 /*
-  editProfile {{{
+editProfile {{{
 */
-func editProfile()error{
-  e := os.Getenv("EDITOR")
-  if e == "" {
-    return errors.New("Not set EDITOR environmental variables")
-  }
-  d, err := getDir()
-  if err!=nil {
-    return err
-  }
-  path := d+"/"+profile
-  if _, err := os.Stat(path); err!=nil {
-    fmt.Println("Not found profile file.")
-    return errors.New("Not found profile file")
-  }
-  c := exec.Command(e, path)
-  c.Stdin = os.Stdin
-  c.Stdout = os.Stdout
-  c.Stderr = os.Stderr
-  if err :=c.Run(); err!=nil {
-    return err
-  }
+func editProfile() error {
+	e := os.Getenv("EDITOR")
+	if e == "" {
+		return errors.New("Not set EDITOR environmental variables")
+	}
+	d, err := getDir()
+	if err != nil {
+		return err
+	}
+	path := d + "/" + profile
+	if _, err := os.Stat(path); err != nil {
+		fmt.Println("Not found profile file.")
+		return errors.New("Not found profile file")
+	}
+	c := exec.Command(e, path)
+	c.Stdin = os.Stdin
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+	if err := c.Run(); err != nil {
+		return err
+	}
 
-  return nil
+	return nil
 }
+
 // }}}
 
 /*
-  publishProfile {{{
+publishProfile {{{
 */
 func publishProfile() error {
-  var rl [] string
-  s, err := readProfile()
-  if err != nil {
-    fmt.Println("Not found your profile. Use \"nostk init\" and \"nostk editProfile\".")
-    return err
-  }
-  sk, err := readPrivateKey()
-  if err!=nil {
-    fmt.Println("Nothing key pair. Make key pair.")
-    return err
-  }
-  pk, err := nostr.GetPublicKey(sk)
-  if err!=nil {
-    return err
-  }
+	var rl []string
+	s, err := readProfile()
+	if err != nil {
+		fmt.Println("Not found your profile. Use \"nostk init\" and \"nostk editProfile\".")
+		return err
+	}
+	sk, err := readPrivateKey()
+	if err != nil {
+		fmt.Println("Nothing key pair. Make key pair.")
+		return err
+	}
+	pk, err := nostr.GetPublicKey(sk)
+	if err != nil {
+		return err
+	}
 
-  if err := getRelayList(&rl);err!=nil {
-    fmt.Println("Nothing relay list. Make a relay list.")
-    return err
-  }
+	if err := getRelayList(&rl); err != nil {
+		fmt.Println("Nothing relay list. Make a relay list.")
+		return err
+	}
 
-  ev := nostr.Event{
-    PubKey:    pk,
-    CreatedAt: nostr.Now(),
-    Kind:      nostr.KindSetMetadata,
-    Tags:      nil,
-    Content:   string(s),
-  }
+	ev := nostr.Event{
+		PubKey:    pk,
+		CreatedAt: nostr.Now(),
+		Kind:      nostr.KindSetMetadata,
+		Tags:      nil,
+		Content:   string(s),
+	}
 
-  // calling Sign sets the event ID field and the event Sig field
-  ev.Sign(sk)
+	// calling Sign sets the event ID field and the event Sig field
+	ev.Sign(sk)
 
-  // publish the event to two relays
-  ctx := context.Background()
-  for _, url := range rl {
-    relay, err := nostr.RelayConnect(ctx, url)
-    if err != nil {
-      fmt.Println(err)
-      continue
-    }
-    _, err = relay.Publish(ctx, ev)
-    if err != nil {
-      fmt.Println(err)
-      continue
-    }
-    fmt.Printf("published to %s\n", url)
-  }
-  return nil
+	// publish the event to two relays
+	ctx := context.Background()
+	for _, url := range rl {
+		relay, err := nostr.RelayConnect(ctx, url)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		_, err = relay.Publish(ctx, ev)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		fmt.Printf("published to %s\n", url)
+	}
+	return nil
 }
+
 // }}}
 
 /*
-  publishMessage {{{
+publishMessage {{{
 */
 func publishMessage(s string) error {
-  var rl [] string
+	var rl []string
 
-  if len(s)<1 {
-    fmt.Println("Nothing text message.")
-    return errors.New("Not set text message")
-  }
-  sk, err := readPrivateKey()
-  if err!=nil {
-    fmt.Println("Nothing key pair. Make key pair.")
-    return err
-  }
-  pk, err := nostr.GetPublicKey(sk)
-  if err!=nil {
-    return err
-  }
+	if len(s) < 1 {
+		fmt.Println("Nothing text message.")
+		return errors.New("Not set text message")
+	}
+	sk, err := readPrivateKey()
+	if err != nil {
+		fmt.Println("Nothing key pair. Make key pair.")
+		return err
+	}
+	pk, err := nostr.GetPublicKey(sk)
+	if err != nil {
+		return err
+	}
 
-  if err := getRelayList(&rl);err!=nil {
-    fmt.Println("Nothing relay list. Make a relay list.")
-    return err
-  }
+	if err := getRelayList(&rl); err != nil {
+		fmt.Println("Nothing relay list. Make a relay list.")
+		return err
+	}
 
-  ev := nostr.Event{
-    PubKey:    pk,
-    CreatedAt: nostr.Now(),
-    Kind:      nostr.KindTextNote,
-    Tags:      nil,
-    Content:   s,
-  }
+	ev := nostr.Event{
+		PubKey:    pk,
+		CreatedAt: nostr.Now(),
+		Kind:      nostr.KindTextNote,
+		Tags:      nil,
+		Content:   s,
+	}
 
-  // calling Sign sets the event ID field and the event Sig field
-  ev.Sign(sk)
+	// calling Sign sets the event ID field and the event Sig field
+	ev.Sign(sk)
 
-  // publish the event to two relays
-  ctx := context.Background()
-  for _, url := range rl {
-    relay, err := nostr.RelayConnect(ctx, url)
-    if err != nil {
-      fmt.Println(err)
-      continue
-    }
-    _, err = relay.Publish(ctx, ev)
-    if err != nil {
-      fmt.Println(err)
-      continue
-    }
-    fmt.Printf("published to %s\n", url)
-  }
+	// publish the event to two relays
+	ctx := context.Background()
+	for _, url := range rl {
+		relay, err := nostr.RelayConnect(ctx, url)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		_, err = relay.Publish(ctx, ev)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		fmt.Printf("published to %s\n", url)
+	}
 
-  return nil
+	return nil
 }
+
 // }}}
 
 /*
-  getDir {{{
+getDir {{{
 */
-func getDir() ( string, error ) {
-  home := os.Getenv("HOME")
-  if home == "" {
-    return "", errors.New("Not set HOME environmental variables")
-  }
-  home += secretDir
-  if _, err := os.Stat(home); err!=nil {
-    if err = os.Mkdir(home, 0700); err != nil {
-      return "", err
-    }
-  }
-  return home, nil
+func getDir() (string, error) {
+	home := os.Getenv("HOME")
+	if home == "" {
+		return "", errors.New("Not set HOME environmental variables")
+	}
+	home += secretDir
+	if _, err := os.Stat(home); err != nil {
+		if err = os.Mkdir(home, 0700); err != nil {
+			return "", err
+		}
+	}
+	return home, nil
 }
+
 // }}}
 
 /*
-  getRelayList {{{
+getRelayList {{{
 */
 func getRelayList(rl *[]string) error {
-  p := make(map[string]RwFlag)
-  b, err := readRelayList()
-  if err!=nil {
-    return err
-  }
-  err = json.Unmarshal([]byte(b),&p)
-  if err!=nil {
-    return err
-  }
-  for i:= range p {
-    *rl = append(*rl, i)
-  }
-  return nil
+	p := make(map[string]RwFlag)
+	b, err := readRelayList()
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal([]byte(b), &p)
+	if err != nil {
+		return err
+	}
+	for i := range p {
+		*rl = append(*rl, i)
+	}
+	return nil
 }
+
 // }}}
 
 /*
-  saveRelays {{{
+saveRelays {{{
 */
 func saveRelays(rl []string) error {
-  dn, err := getDir()
-  if err!=nil {
-    return err
-  }
+	dn, err := getDir()
+	if err != nil {
+		return err
+	}
 
-  path := dn+"/"+relays
-  fp, err := os.Create(path)
-  if err != nil {
-    return err
-  }
-  defer fp.Close()
-  for _, l := range rl {
-    _,err = fp.WriteString(l+"\n")
-    if err!=nil {
-      return err
-    }
-  }
-  return nil
+	path := dn + "/" + relays
+	fp, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer fp.Close()
+	for _, l := range rl {
+		_, err = fp.WriteString(l + "\n")
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
+
 // }}}
 
 /*
-  readPrivateKey {{{
+readPrivateKey {{{
 */
 func readPrivateKey() (string, error) {
-  var k [] string
-  dir, err :=getDir()
-  if err!=nil {
-    return "", err
-  }
-  path := dir+"/"+hsec
-  if _, err := os.Stat(path); err!=nil {
-    return "", err
-  }
-  b, err := ioutil.ReadFile(path)
-  rs := strings.Split(string(b),"\n")
-  for _, r := range rs {
-    if r!="" {  // 最終行の\nにより発生する余分なレコードを排除
-      k = append(k, r)
-    }
-  }
-  return k[0], nil
+	var k []string
+	dir, err := getDir()
+	if err != nil {
+		return "", err
+	}
+	path := dir + "/" + hsec
+	if _, err := os.Stat(path); err != nil {
+		return "", err
+	}
+	b, err := ioutil.ReadFile(path)
+	rs := strings.Split(string(b), "\n")
+	for _, r := range rs {
+		if r != "" { // 最終行の\nにより発生する余分なレコードを排除
+			k = append(k, r)
+		}
+	}
+	return k[0], nil
 }
+
 // }}}
 
 /*
-  createProfile {{{
+createProfile {{{
 */
 func createProfile(d string) error {
-  p := ProfileMetadata{"","","","","","","","",}
-  s, err := json.Marshal(p)
-  if err!=nil {
-    return err
-  }
-  path := d+"/"+profile
-  fp, err := os.Create(path)
-  if err != nil {
-    return err
-  }
-  defer fp.Close()
-  _,err = fp.WriteString(string(s))
-  if err!=nil {
-    return err
-  }
-  return nil
+	p := ProfileMetadata{"", "", "", "", "", "", "", ""}
+	s, err := json.Marshal(p)
+	if err != nil {
+		return err
+	}
+	path := d + "/" + profile
+	fp, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer fp.Close()
+	_, err = fp.WriteString(string(s))
+	if err != nil {
+		return err
+	}
+	return nil
 }
+
 // }}}
 
 /*
-  createRelayList {{{
+createRelayList {{{
 */
 func createRelayList(d string) error {
-  p := make(map[string]RwFlag)
-  p[""] = RwFlag{true,true}
+	p := make(map[string]RwFlag)
+	p[""] = RwFlag{true, true}
 
-  s, err := json.Marshal(p)
-  if err!=nil {
-    return err
-  }
-  path := d+"/"+relays
-  fp, err := os.Create(path)
-  if err != nil {
-    return err
-  }
-  defer fp.Close()
-  _,err = fp.WriteString(string(s))
-  if err!=nil {
-    return err
-  }
-  return nil
+	s, err := json.Marshal(p)
+	if err != nil {
+		return err
+	}
+	path := d + "/" + relays
+	fp, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer fp.Close()
+	_, err = fp.WriteString(string(s))
+	if err != nil {
+		return err
+	}
+	return nil
 }
+
 // }}}
 
 /*
-  readProfile {{{
+readProfile {{{
 */
-func readProfile() (string,error) {
-  d, err :=getDir()
-  if err!=nil {
-    return "", err
-  }
-  path := d+"/"+profile
-  if _, err := os.Stat(path); err!=nil {
-    return "", err
-  }
-  b, err := ioutil.ReadFile(path)
-  r := strings.ReplaceAll(string(b), "\n", "")
-  return r, nil
+func readProfile() (string, error) {
+	d, err := getDir()
+	if err != nil {
+		return "", err
+	}
+	path := d + "/" + profile
+	if _, err := os.Stat(path); err != nil {
+		return "", err
+	}
+	b, err := ioutil.ReadFile(path)
+	r := strings.ReplaceAll(string(b), "\n", "")
+	return r, nil
 }
+
 //}}}
 
 /*
-  readRelayList {{{
+readRelayList {{{
 */
 func readRelayList() (string, error) {
-  //var k [] string
-  d, err :=getDir()
-  if err!=nil {
-    return "", err
-  }
-  path := d+"/"+relays
-  if _, err := os.Stat(path); err!=nil {
-    return "", err
-  }
-  b, err := ioutil.ReadFile(path)
-  if err!=nil {
-    return "", err
-  }
-  r := strings.ReplaceAll(string(b), "\n", "")
-  return r, nil
+	//var k [] string
+	d, err := getDir()
+	if err != nil {
+		return "", err
+	}
+	path := d + "/" + relays
+	if _, err := os.Stat(path); err != nil {
+		return "", err
+	}
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	r := strings.ReplaceAll(string(b), "\n", "")
+	return r, nil
 }
-//}}}
 
+//}}}
