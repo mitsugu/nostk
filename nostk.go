@@ -41,7 +41,7 @@ type RwFlag struct {
 }
 
 /*
-main
+main {{{
 */
 func main() {
 	if len(os.Args) < 2 {
@@ -79,6 +79,10 @@ func main() {
 		if err := publishProfile(); err != nil {
 			log.Fatal(err)
 		}
+	case "pubRelays":
+		if err := publishRelayList(); err != nil {
+			log.Fatal(err)
+		}
 	case "pubMessage":
 		if len(os.Args) < 3 {
 			fmt.Println("Nothing text message.")
@@ -90,21 +94,23 @@ func main() {
 		}
 	}
 }
+// }}}
 
 /*
 dispHelp {{{
 */
 func dispHelp() {
 	const (
-		usage             = "Usage :\n  nostk <sub-command> [param...]"
-		subcommand        = "    sub-command :"
-		strInit           = "        init : Initializing the nostk environment"
-		genkey            = "        genkey : create Prive Key and Public Key"
-		strListRelay      = "        lsRelay : Show relay list"
-		strEditRelay      = "        editRelays : edit relay list."
-		strEditProfile    = "        editProfile : Edit your profile."
-		strPublishProfile = "        pubProfile: Publish your profile."
-		strPublishMessage = "        pubMessage <text message>: Publish message to relays."
+		usage				= "Usage :\n  nostk <sub-command> [param...]"
+		subcommand			= "    sub-command :"
+		strInit				= "        init : Initializing the nostk environment"
+		genkey				= "        genkey : create Prive Key and Public Key"
+		strListRelay		= "        lsRelay : Show relay list"
+		strEditRelay		= "        editRelays : edit relay list."
+		strPubRelay			= "        pubRelays : Publish relay list."
+		strEditProfile		= "        editProfile : Edit your profile."
+		strPublishProfile	= "        pubProfile: Publish your profile."
+		strPublishMessage	= "        pubMessage <text message>: Publish message to relays."
 	)
 
 	fmt.Println(usage)
@@ -113,6 +119,7 @@ func dispHelp() {
 	fmt.Println(genkey)
 	fmt.Println(strListRelay)
 	fmt.Println(strEditRelay)
+	fmt.Println(strPubRelay)
 	fmt.Println(strEditProfile)
 	fmt.Println(strPublishProfile)
 	fmt.Println(strPublishMessage)
@@ -433,6 +440,82 @@ func publishMessage(s string) error {
 }
 
 // }}}
+
+/*
+	publishRelayList
+*/
+func publishRelayList() error {
+	p := make(map[string]RwFlag)
+	b, err := readRelayList()
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal([]byte(b), &p)
+	if err != nil {
+		return err
+	}
+	const (
+		cRead	= "read"
+		cWrite	= "write"
+	)
+	tags := nostr.Tags{}
+	for i := range p {
+		t := nostr.Tag {"r", i}
+	    if p[i].Read == true && p[i].Write == true {
+		}else if p[i].Read == true {
+			t = append(t, cRead)
+		}else if p[i].Write == true {
+			t = append(t, cWrite)
+		}
+		tags = append(tags,t)
+	}
+
+	sk, err := readPrivateKey()
+	if err != nil {
+		fmt.Println("Nothing key pair. Make key pair.")
+		return err
+	}
+	pk, err := nostr.GetPublicKey(sk)
+	if err != nil {
+		return err
+	}
+
+	var rl []string
+	if err := getRelayList(&rl); err != nil {
+		fmt.Println("Nothing relay list. Make a relay list.")
+		return err
+	}
+
+	ev := nostr.Event{
+		PubKey:    pk,
+		CreatedAt: nostr.Now(),
+		Kind:      nostr.KindRelayListMetadata,
+		Tags:      tags,
+		Content:   "",
+	}
+
+	// calling Sign sets the event ID field and the event Sig field
+	ev.Sign(sk)
+
+	// publish the event to two relays
+	ctx := context.Background()
+	for _, url := range rl {
+		relay, err := nostr.RelayConnect(ctx, url)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		_, err = relay.Publish(ctx, ev)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		fmt.Printf("published relay list to %s\n", url)
+	}
+
+	return nil
+}
+//
 
 /*
 getDir {{{
