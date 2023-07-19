@@ -16,12 +16,13 @@ import (
 
 const (
 	secretDir = "/.nostk"
-	hsec      = ".hsec"
-	nsec      = ".nsec"
-	hpub      = ".hpub"
-	npub      = ".npub"
-	relays    = "relays.json"
-	profile   = "profile.json"
+	hsec	= ".hsec"
+	nsec	= ".nsec"
+	hpub	= ".hpub"
+	npub	= ".npub"
+	relays	= "relays.json"
+	profile	= "profile.json"
+	emoji	= "customemoji.json"
 )
 
 type ProfileMetadata struct {
@@ -131,17 +132,16 @@ func dispHelp() {
 initEnv {{{
 */
 func initEnv() error {
-	// make .nostk directory
-	dir, err := getDir()
-	if err != nil {
+	// make skeleton of user profile
+	if err := createProfile(); err != nil {
 		return err
 	}
 	// make skeleton of user profile
-	if err := createProfile(dir); err != nil {
+	if err := createRelayList(); err != nil {
 		return err
 	}
-	// make skeleton of user profile
-	if err := createRelayList(dir); err != nil {
+	// make skeleton of custom emoji list
+	if err := createCustomEmojiList(); err != nil {
 		return err
 	}
 	return nil
@@ -442,7 +442,7 @@ func publishMessage(s string) error {
 // }}}
 
 /*
-	publishRelayList
+	publishRelayList {{{
 */
 func publishRelayList() error {
 	p := make(map[string]RwFlag)
@@ -515,7 +515,7 @@ func publishRelayList() error {
 
 	return nil
 }
-//
+// }}}
 
 /*
 getDir {{{
@@ -611,9 +611,14 @@ func readPrivateKey() (string, error) {
 /*
 createProfile {{{
 */
-func createProfile(d string) error {
+func createProfile() error {
 	p := ProfileMetadata{"", "", "", "", "", "", "", ""}
 	s, err := json.Marshal(p)
+	if err != nil {
+		return err
+	}
+
+	d, err := getDir()
 	if err != nil {
 		return err
 	}
@@ -635,15 +640,50 @@ func createProfile(d string) error {
 /*
 createRelayList {{{
 */
-func createRelayList(d string) error {
+func createRelayList() error {
 	p := make(map[string]RwFlag)
 	p[""] = RwFlag{true, true}
-
 	s, err := json.Marshal(p)
 	if err != nil {
 		return err
 	}
+
+	d, err := getDir()
+	if err != nil {
+		return err
+	}
 	path := d + "/" + relays
+	fp, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer fp.Close()
+	_, err = fp.WriteString(string(s))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// }}}
+
+/*
+createCustomEmojiList {{{
+*/
+func createCustomEmojiList() error {
+	p := map[string]string{
+		"name" : "url",
+	}
+	s, err := json.Marshal(p)
+	if err != nil {
+		return err
+	}
+
+	d, err := getDir()
+	if err != nil {
+		return err
+	}
+	path := d + "/" + emoji
 	fp, err := os.Create(path)
 	if err != nil {
 		return err
@@ -699,3 +739,4 @@ func readRelayList() (string, error) {
 }
 
 //}}}
+
