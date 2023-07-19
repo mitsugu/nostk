@@ -76,6 +76,10 @@ func main() {
 		if err := editProfile(); err != nil {
 			log.Fatal(err)
 		}
+	case "editEmoji":
+		if err := editCustomEmojiList(); err != nil {
+			log.Fatal(err)
+		}
 	case "pubProfile":
 		if err := publishProfile(); err != nil {
 			log.Fatal(err)
@@ -110,6 +114,7 @@ func dispHelp() {
 		strEditRelay		= "        editRelays : edit relay list."
 		strPubRelay			= "        pubRelays : Publish relay list."
 		strEditProfile		= "        editProfile : Edit your profile."
+		strCustomEmoji		= "        editEmoji : Edit custom emoji list."
 		strPublishProfile	= "        pubProfile: Publish your profile."
 		strPublishMessage	= "        pubMessage <text message>: Publish message to relays."
 	)
@@ -122,6 +127,7 @@ func dispHelp() {
 	fmt.Println(strEditRelay)
 	fmt.Println(strPubRelay)
 	fmt.Println(strEditProfile)
+	fmt.Println(strCustomEmoji)
 	fmt.Println(strPublishProfile)
 	fmt.Println(strPublishMessage)
 }
@@ -299,6 +305,36 @@ func editRelayList() error {
 // }}}
 
 /*
+editCustomEmojiList {{{
+*/
+func editCustomEmojiList() error {
+	e := os.Getenv("EDITOR")
+	if e == "" {
+		return errors.New("Not set EDITOR environmental variables")
+	}
+	d, err := getDir()
+	if err != nil {
+		return err
+	}
+	path := d + "/" + emoji
+	if _, err := os.Stat(path); err != nil {
+		fmt.Println("Not found custom emoji list. Use \"nostk init\"")
+		return errors.New("Not found custom emoji list")
+	}
+	c := exec.Command(e, path)
+	c.Stdin = os.Stdin
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+	if err := c.Run(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// }}}
+
+/*
 editProfile {{{
 */
 func editProfile() error {
@@ -385,7 +421,7 @@ func publishProfile() error {
 // }}}
 
 /*
-publishMessage {{{
+publishMessage 
 */
 func publishMessage(s string) error {
 	var rl []string
@@ -394,6 +430,7 @@ func publishMessage(s string) error {
 		fmt.Println("Nothing text message.")
 		return errors.New("Not set text message")
 	}
+
 	sk, err := readPrivateKey()
 	if err != nil {
 		fmt.Println("Nothing key pair. Make key pair.")
@@ -409,11 +446,16 @@ func publishMessage(s string) error {
 		return err
 	}
 
+	tgs := nostr.Tags{}
+	if err := setCustomEmoji(s, &tgs); err!=nil {
+		return err
+	}
+
 	ev := nostr.Event{
 		PubKey:    pk,
 		CreatedAt: nostr.Now(),
 		Kind:      nostr.KindTextNote,
-		Tags:      nil,
+		Tags:      tgs,
 		Content:   s,
 	}
 
@@ -439,7 +481,7 @@ func publishMessage(s string) error {
 	return nil
 }
 
-// }}}
+// 
 
 /*
 	publishRelayList {{{
@@ -609,6 +651,44 @@ func readPrivateKey() (string, error) {
 // }}}
 
 /*
+	setCustomEmoji
+*/
+func setCustomEmoji(s string, tgs *nostr.Tags)error{
+	*tgs = nil
+	ts := make(map[string]string)
+	if err := getCustomEmoji(&ts);err!=nil {
+		return  err
+	}
+	var t []string
+	for i:=range ts {
+		if strings.Contains(s, ":"+i+":") {
+			t = nil
+			t = append(t, "emoji")
+			t = append(t, i)
+			t = append(t, ts[i])
+			*tgs = append(*tgs, t)
+		}
+	}
+	return nil
+}
+
+/*
+	getCustomEmoji {{{
+*/
+func getCustomEmoji(ts *map[string]string) error {
+	b, err := readCustomEmojiList()
+	if err!=nil {
+		return err
+	}
+	err = json.Unmarshal([]byte(b), ts)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+// }}}
+
+/*
 createProfile {{{
 */
 func createProfile() error {
@@ -727,6 +807,28 @@ func readRelayList() (string, error) {
 		return "", err
 	}
 	path := d + "/" + relays
+	if _, err := os.Stat(path); err != nil {
+		return "", err
+	}
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	r := strings.ReplaceAll(string(b), "\n", "")
+	return r, nil
+}
+
+//}}}
+
+/*
+readCustomEmojiList {{{
+*/
+func readCustomEmojiList() (string, error) {
+	d, err := getDir()
+	if err != nil {
+		return "", err
+	}
+	path := d + "/" + emoji
 	if _, err := os.Stat(path); err != nil {
 		return "", err
 	}
