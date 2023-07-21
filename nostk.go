@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	secretDir = "/.nostk"
+	secretDir = ".nostk"
 	hsec      = ".hsec"
 	nsec      = ".nsec"
 	hpub      = ".hpub"
@@ -584,7 +584,7 @@ func getDir() (string, error) {
 	if home == "" {
 		return "", errors.New("Not set HOME environmental variables")
 	}
-	home += secretDir
+	home = filepath.Join(home, secretDir)
 	if _, err := os.Stat(home); err != nil {
 		if err = os.Mkdir(home, 0700); err != nil {
 			return "", err
