@@ -605,11 +605,11 @@ func readStdIn() (string, error) {
 	cn := make(chan string, 1)
 	go func() {
 		sc := bufio.NewScanner(os.Stdin)
-		var buf bytes.Buffer
+		var buff bytes.Buffer
 		for sc.Scan() {
-			fmt.Fprintln(&buf, sc.Text())
+			fmt.Fprintln(&buff, sc.Text())
 		}
-		cn <- buf.String()
+		cn <- buff.String()
 	}()
 	timer := time.NewTimer(time.Second)
 	defer timer.Stop()
