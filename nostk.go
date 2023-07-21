@@ -520,32 +520,6 @@ func getRelayList(rl *[]string) error {
 // }}}
 
 /*
-saveRelays {{{
-*/
-func saveRelays(rl []string) error {
-	dn, err := getDir()
-	if err != nil {
-		return err
-	}
-
-	path := filepath.Join(dn, relays)
-	fp, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer fp.Close()
-	for _, l := range rl {
-		_, err = fmt.Fprintln(fp, l)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// }}}
-
-/*
 setCustomEmoji {{{
 */
 func setCustomEmoji(s string, tgs *nostr.Tags) error {
