@@ -256,7 +256,7 @@ editRelayList {{{
 func editRelayList() error {
 	e := os.Getenv("EDITOR")
 	if e == "" {
-		return errors.New("Not set EDITOR environmental variables")
+		return errors.New("Not set EDITOR environment variables")
 	}
 	d, err := getDir()
 	if err != nil {
@@ -286,7 +286,7 @@ editCustomEmojiList {{{
 func editCustomEmojiList() error {
 	e := os.Getenv("EDITOR")
 	if e == "" {
-		return errors.New("Not set EDITOR environmental variables")
+		return errors.New("Not set EDITOR environment variables")
 	}
 	d, err := getDir()
 	if err != nil {
@@ -316,7 +316,7 @@ editProfile {{{
 func editProfile() error {
 	e := os.Getenv("EDITOR")
 	if e == "" {
-		return errors.New("Not set EDITOR environmental variables")
+		return errors.New("Not set EDITOR environment variables")
 	}
 	d, err := getDir()
 	if err != nil {
@@ -543,7 +543,7 @@ getDir {{{
 func getDir() (string, error) {
 	home := os.Getenv("HOME")
 	if home == "" {
-		return "", errors.New("Not set HOME environmental variables")
+		return "", errors.New("Not set HOME environment variables")
 	}
 	home = filepath.Join(home, secretDir)
 	if _, err := os.Stat(home); err != nil {
