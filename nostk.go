@@ -182,20 +182,20 @@ func genKey() error {
 	if err != nil {
 		return err
 	}
-	nsec, npub, err := genNKey(sk, pk)
+	ns, np, err := genNKey(sk, pk)
 	if err != nil {
 		return err
 	}
-	if err = saveHSecKey(dirName, sk); err != nil {
+	if err = save(dirName, hsec, sk); err != nil {
 		return err
 	}
-	if err = saveHPubKey(dirName, pk); err != nil {
+	if err = save(dirName, hpub, pk); err != nil {
 		return err
 	}
-	if err = saveNSecKey(dirName, nsec); err != nil {
+	if err = save(dirName, nsec, ns); err != nil {
 		return err
 	}
-	if err = saveNPubKey(dirName, npub); err != nil {
+	if err = save(dirName, npub, np); err != nil {
 		return err
 	}
 	return nil
@@ -222,24 +222,9 @@ func genNKey(sk string, pk string) (string, string, error) {
 	return nsec, npub, nil
 }
 
-func saveHSecKey(dn string, sk string) error {
-	path := filepath.Join(dn, hsec)
-	return ioutil.WriteFile(path, []byte(sk), 0644)
-}
-
-func saveNSecKey(dn string, nkey string) error {
-	path := filepath.Join(dn, nsec)
-	return ioutil.WriteFile(path, []byte(nkey), 0644)
-}
-
-func saveHPubKey(dn string, pk string) error {
-	path := filepath.Join(dn, hpub)
-	return ioutil.WriteFile(path, []byte(pk), 0644)
-}
-
-func saveNPubKey(dn string, nkey string) error {
-	path := filepath.Join(dn, npub)
-	return ioutil.WriteFile(path, []byte(nkey), 0644)
+func save(dn string, fn string, value string) error {
+	path := filepath.Join(dn, fn)
+	return ioutil.WriteFile(path, []byte(value), 0644)
 }
 
 // }}}
