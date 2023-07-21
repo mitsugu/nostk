@@ -1,17 +1,19 @@
 package main
 
 import (
+	"os"
+	"time"
+	"os/exec"
+	"strings"
+	"bufio"
+	"io/ioutil"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
-	"io/ioutil"
-	"log"
-	"os"
-	"os/exec"
-	"strings"
 )
 
 const (
@@ -42,7 +44,7 @@ type RwFlag struct {
 }
 
 /*
-main {{{
+main 
 */
 func main() {
 	if len(os.Args) < 2 {
@@ -89,17 +91,26 @@ func main() {
 			log.Fatal(err)
 		}
 	case "pubMessage":
-		if len(os.Args) < 3 {
-			fmt.Println("Nothing text message.")
-			log.Fatal(errors.New("Not set text message"))
-			os.Exit(1)
-		}
-		if err := publishMessage(os.Args[2]); err != nil {
-			log.Fatal(err)
+		if len(os.Args) > 2 {
+			if err := publishMessage(os.Args[2]); err != nil {
+				log.Fatal(err)
+				os.Exit(1)
+			}
+		} else {
+			buff, err := readStdIn()
+			if err!=nil {
+				fmt.Println("Nothing text message.")
+				log.Fatal(errors.New("Not set text message"))
+				os.Exit(1)
+			}
+			if err := publishMessage(buff); err != nil {
+				log.Fatal(err)
+				os.Exit(1)
+			}
 		}
 	}
 }
-// }}}
+// 
 
 /*
 dispHelp {{{
@@ -421,7 +432,7 @@ func publishProfile() error {
 // }}}
 
 /*
-publishMessage 
+publishMessage {{{
 */
 func publishMessage(s string) error {
 	var rl []string
@@ -481,7 +492,7 @@ func publishMessage(s string) error {
 	return nil
 }
 
-// 
+// }}}
 
 /*
 	publishRelayList {{{
@@ -651,7 +662,7 @@ func readPrivateKey() (string, error) {
 // }}}
 
 /*
-	setCustomEmoji
+	setCustomEmoji {{{
 */
 func setCustomEmoji(s string, tgs *nostr.Tags)error{
 	*tgs = nil
@@ -671,6 +682,7 @@ func setCustomEmoji(s string, tgs *nostr.Tags)error{
 	}
 	return nil
 }
+// }}}
 
 /*
 	getCustomEmoji {{{
@@ -841,4 +853,21 @@ func readCustomEmojiList() (string, error) {
 }
 
 //}}}
+
+func readStdIn() (string,error) {
+	cn := make(chan string, 1)
+		go func() {
+		sc := bufio.NewScanner(os.Stdin)
+		sc.Scan()
+		cn <- sc.Text()
+	}()
+	timer := time.NewTimer(time.Second)
+	defer timer.Stop()
+	select {
+	case text := <-cn:
+		return text,nil
+	case <-timer.C:
+		return "", errors.New("Time out input from standerd input")
+	}
+}
 
