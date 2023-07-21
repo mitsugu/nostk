@@ -154,7 +154,7 @@ initEnv {{{
 */
 func initEnv() error {
 	// make skeleton of user profile
-	if err := createProfile(profile, ProfileMetadata{"", "", "", "", "", "", "", ""}); err != nil {
+	if err := create(profile, ProfileMetadata{"", "", "", "", "", "", "", ""}); err != nil {
 		return err
 	}
 	p := make(map[string]RwFlag)
