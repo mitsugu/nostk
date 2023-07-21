@@ -224,46 +224,22 @@ func genNKey(sk string, pk string) (string, string, error) {
 
 func saveHSecKey(dn string, sk string) error {
 	path := filepath.Join(dn, hsec)
-	fp, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer fp.Close()
-	fp.WriteString(sk)
-	return nil
+	return ioutil.WriteFile(path, []byte(sk), 0644)
 }
 
 func saveNSecKey(dn string, nkey string) error {
 	path := filepath.Join(dn, nsec)
-	fp, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer fp.Close()
-	fp.WriteString(nkey)
-	return nil
+	return ioutil.WriteFile(path, []byte(nkey), 0644)
 }
 
 func saveHPubKey(dn string, pk string) error {
 	path := filepath.Join(dn, hpub)
-	fp, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer fp.Close()
-	fp.WriteString(pk)
-	return nil
+	return ioutil.WriteFile(path, []byte(pk), 0644)
 }
 
 func saveNPubKey(dn string, nkey string) error {
 	path := filepath.Join(dn, npub)
-	fp, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer fp.Close()
-	fp.WriteString(nkey)
-	return nil
+	return ioutil.WriteFile(path, []byte(nkey), 0644)
 }
 
 // }}}
@@ -632,7 +608,7 @@ func saveRelays(rl []string) error {
 	}
 	defer fp.Close()
 	for _, l := range rl {
-		_, err = fp.WriteString(l + "\n")
+		_, err = fmt.Fprintln(fp, l)
 		if err != nil {
 			return err
 		}
@@ -723,16 +699,7 @@ func createProfile() error {
 		return err
 	}
 	path := filepath.Join(d, profile)
-	fp, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer fp.Close()
-	_, err = fp.WriteString(string(s))
-	if err != nil {
-		return err
-	}
-	return nil
+	return ioutil.WriteFile(path, s, 0644)
 }
 
 // }}}
@@ -753,16 +720,7 @@ func createRelayList() error {
 		return err
 	}
 	path := filepath.Join(d, relays)
-	fp, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer fp.Close()
-	_, err = fp.WriteString(string(s))
-	if err != nil {
-		return err
-	}
-	return nil
+	return ioutil.WriteFile(path, s, 0644)
 }
 
 // }}}
@@ -784,16 +742,7 @@ func createCustomEmojiList() error {
 		return err
 	}
 	path := filepath.Join(d, emoji)
-	fp, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer fp.Close()
-	_, err = fp.WriteString(string(s))
-	if err != nil {
-		return err
-	}
-	return nil
+	return ioutil.WriteFile(path, s, 0644)
 }
 
 // }}}
