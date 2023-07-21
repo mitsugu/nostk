@@ -14,7 +14,7 @@ Implementing a CLI client to use [Nostr Protocol](https://github.com/nostr-proto
 
 ### Install nostk:
 ```bash
-comming soon...
+go install github.com/mitsugu/nostk@latest
 ```
 
 ### Generating a key
