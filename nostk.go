@@ -6,14 +6,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/nbd-wtf/go-nostr"
-	"github.com/nbd-wtf/go-nostr/nip19"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/nbd-wtf/go-nostr"
+	"github.com/nbd-wtf/go-nostr/nip19"
 )
 
 const (
@@ -220,7 +222,7 @@ func genNKey(sk string, pk string) (string, string, error) {
 }
 
 func saveHSecKey(dn string, sk string) error {
-	path := dn + "/" + hsec
+	path := filepath.Join(dn, hsec)
 	fp, err := os.Create(path)
 	if err != nil {
 		return err
@@ -231,7 +233,7 @@ func saveHSecKey(dn string, sk string) error {
 }
 
 func saveNSecKey(dn string, nkey string) error {
-	path := dn + "/" + nsec
+	path := filepath.Join(dn, nsec)
 	fp, err := os.Create(path)
 	if err != nil {
 		return err
@@ -242,7 +244,7 @@ func saveNSecKey(dn string, nkey string) error {
 }
 
 func saveHPubKey(dn string, pk string) error {
-	path := dn + "/" + hpub
+	path := filepath.Join(dn, hpub)
 	fp, err := os.Create(path)
 	if err != nil {
 		return err
@@ -253,7 +255,7 @@ func saveHPubKey(dn string, pk string) error {
 }
 
 func saveNPubKey(dn string, nkey string) error {
-	path := dn + "/" + npub
+	path := filepath.Join(dn, npub)
 	fp, err := os.Create(path)
 	if err != nil {
 		return err
@@ -298,7 +300,7 @@ func editRelayList() error {
 	if err != nil {
 		return err
 	}
-	path := d + "/" + relays
+	path := filepath.Join(d, relays)
 	if _, err := os.Stat(path); err != nil {
 		fmt.Println("Not found relay list. Use \"nostk init\"")
 		return errors.New("Not found relay list")
@@ -328,7 +330,7 @@ func editCustomEmojiList() error {
 	if err != nil {
 		return err
 	}
-	path := d + "/" + emoji
+	path := filepath.Join(d, emoji)
 	if _, err := os.Stat(path); err != nil {
 		fmt.Println("Not found custom emoji list. Use \"nostk init\"")
 		return errors.New("Not found custom emoji list")
@@ -358,7 +360,7 @@ func editProfile() error {
 	if err != nil {
 		return err
 	}
-	path := d + "/" + profile
+	path := filepath.Join(d, profile)
 	if _, err := os.Stat(path); err != nil {
 		fmt.Println("Not found profile file.")
 		return errors.New("Not found profile file")
@@ -622,7 +624,7 @@ func saveRelays(rl []string) error {
 		return err
 	}
 
-	path := dn + "/" + relays
+	path := filepath.Join(dn, relays)
 	fp, err := os.Create(path)
 	if err != nil {
 		return err
@@ -648,7 +650,7 @@ func readPrivateKey() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	path := dir + "/" + hsec
+	path := filepath.Join(dir, hsec)
 	if _, err := os.Stat(path); err != nil {
 		return "", err
 	}
@@ -719,7 +721,7 @@ func createProfile() error {
 	if err != nil {
 		return err
 	}
-	path := d + "/" + profile
+	path := filepath.Join(d, profile)
 	fp, err := os.Create(path)
 	if err != nil {
 		return err
@@ -749,7 +751,7 @@ func createRelayList() error {
 	if err != nil {
 		return err
 	}
-	path := d + "/" + relays
+	path := filepath.Join(d, relays)
 	fp, err := os.Create(path)
 	if err != nil {
 		return err
@@ -780,7 +782,7 @@ func createCustomEmojiList() error {
 	if err != nil {
 		return err
 	}
-	path := d + "/" + emoji
+	path := filepath.Join(d, emoji)
 	fp, err := os.Create(path)
 	if err != nil {
 		return err
@@ -803,7 +805,7 @@ func readProfile() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	path := d + "/" + profile
+	path := filepath.Join(d, profile)
 	if _, err := os.Stat(path); err != nil {
 		return "", err
 	}
@@ -823,7 +825,7 @@ func readRelayList() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	path := d + "/" + relays
+	path := filepath.Join(d, relays)
 	if _, err := os.Stat(path); err != nil {
 		return "", err
 	}
@@ -845,7 +847,7 @@ func readCustomEmojiList() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	path := d + "/" + emoji
+	path := filepath.Join(d, emoji)
 	if _, err := os.Stat(path); err != nil {
 		return "", err
 	}
