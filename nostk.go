@@ -628,17 +628,11 @@ func readPrivateKey() (string, error) {
 		return "", err
 	}
 	path := filepath.Join(dir, hsec)
-	if _, err := os.Stat(path); err != nil {
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
 		return "", err
 	}
-	b, err := ioutil.ReadFile(path)
-	rs := strings.Split(string(b), "\n")
-	for _, r := range rs {
-		if r != "" { // 最終行の\nにより発生する余分なレコードを排除
-			k = append(k, r)
-		}
-	}
-	return k[0], nil
+	return strings.TrimRight(string(b)), nil
 }
 
 // }}}
@@ -756,10 +750,10 @@ func readProfile() (string, error) {
 		return "", err
 	}
 	path := filepath.Join(d, profile)
-	if _, err := os.Stat(path); err != nil {
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
 		return "", err
 	}
-	b, err := ioutil.ReadFile(path)
 	r := strings.ReplaceAll(string(b), "\n", "")
 	return r, nil
 }
@@ -776,9 +770,6 @@ func readRelayList() (string, error) {
 		return "", err
 	}
 	path := filepath.Join(d, relays)
-	if _, err := os.Stat(path); err != nil {
-		return "", err
-	}
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		return "", err
@@ -798,9 +789,6 @@ func readCustomEmojiList() (string, error) {
 		return "", err
 	}
 	path := filepath.Join(d, emoji)
-	if _, err := os.Stat(path); err != nil {
-		return "", err
-	}
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		return "", err
