@@ -803,7 +803,7 @@ func readStdIn() (string, error) {
 	case text := <-cn:
 		return text, nil
 	case <-timer.C:
-		return "", errors.New("Time out input from standerd input")
+		return "", errors.New("Time out input from standard input")
 	}
 }
 
