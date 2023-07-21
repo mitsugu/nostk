@@ -44,7 +44,7 @@ type RwFlag struct {
 }
 
 /*
-main 
+main {{{
 */
 func main() {
 	if len(os.Args) < 2 {
@@ -110,7 +110,7 @@ func main() {
 		}
 	}
 }
-// 
+// }}}
 
 /*
 dispHelp {{{
@@ -400,12 +400,13 @@ func publishProfile() error {
 		return err
 	}
 
+	pr := strings.Replace(s,"\\n","\n",-1)
 	ev := nostr.Event{
 		PubKey:    pk,
 		CreatedAt: nostr.Now(),
 		Kind:      nostr.KindSetMetadata,
 		Tags:      nil,
-		Content:   string(s),
+		Content:   string(pr),
 	}
 
 	// calling Sign sets the event ID field and the event Sig field
@@ -462,6 +463,7 @@ func publishMessage(s string) error {
 		return err
 	}
 
+	s = strings.Replace(s,"\\n","\n",-1)
 	ev := nostr.Event{
 		PubKey:    pk,
 		CreatedAt: nostr.Now(),
@@ -854,6 +856,9 @@ func readCustomEmojiList() (string, error) {
 
 //}}}
 
+/*
+  readStdIn {{{
+*/
 func readStdIn() (string,error) {
 	cn := make(chan string, 1)
 		go func() {
@@ -870,4 +875,6 @@ func readStdIn() (string,error) {
 		return "", errors.New("Time out input from standerd input")
 	}
 }
+
+// }}}
 
