@@ -224,11 +224,6 @@ func genNKey(sk string, pk string) (string, string, error) {
 	return nsec, npub, nil
 }
 
-func save(dn string, fn string, value string) error {
-	path := filepath.Join(dn, fn)
-	return ioutil.WriteFile(path, []byte(value), 0644)
-}
-
 // }}}
 
 /*
@@ -247,36 +242,6 @@ func listRelays() error {
 	for i := range p {
 		fmt.Printf("%v R:%v W:%v\n", i, p[i].Read, p[i].Write)
 	}
-	return nil
-}
-
-// }}}
-
-/*
-edit {{{
-*/
-func edit(fn string) error {
-	e := os.Getenv("EDITOR")
-	if e == "" {
-		return errors.New("Not set EDITOR environment variables")
-	}
-	d, err := getDir()
-	if err != nil {
-		return err
-	}
-	path := filepath.Join(d, relays)
-	if _, err := os.Stat(path); err != nil {
-		fmt.Printf("Not found %q. Use \"nostk init\"\n", fn)
-		return fmt.Errorf("Not found %q. Use \"nostk init\"\n", fn)
-	}
-	c := exec.Command(e, path)
-	c.Stdin = os.Stdin
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	if err := c.Run(); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -597,6 +562,46 @@ func load(fn string) (string, error) {
 }
 
 //}}}
+
+/*
+save {{{
+*/
+func save(dn string, fn string, value string) error {
+	path := filepath.Join(dn, fn)
+	return ioutil.WriteFile(path, []byte(value), 0644)
+}
+
+//}}}
+
+/*
+edit {{{
+*/
+func edit(fn string) error {
+	e := os.Getenv("EDITOR")
+	if e == "" {
+		return errors.New("Not set EDITOR environment variables")
+	}
+	d, err := getDir()
+	if err != nil {
+		return err
+	}
+	path := filepath.Join(d, relays)
+	if _, err := os.Stat(path); err != nil {
+		fmt.Printf("Not found %q. Use \"nostk init\"\n", fn)
+		return fmt.Errorf("Not found %q. Use \"nostk init\"\n", fn)
+	}
+	c := exec.Command(e, path)
+	c.Stdin = os.Stdin
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+	if err := c.Run(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// }}}
 
 /*
 readStdIn {{{
