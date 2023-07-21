@@ -234,7 +234,7 @@ Listing Relays {{{
 */
 func listRelays() error {
 	p := make(map[string]RwFlag)
-	b, err := readRelayList()
+	b, err := load(relays)
 	if err != nil {
 		return err
 	}
@@ -345,12 +345,12 @@ publishProfile {{{
 */
 func publishProfile() error {
 	var rl []string
-	s, err := readProfile()
+	s, err := load(profile)
 	if err != nil {
 		fmt.Println("Not found your profile. Use \"nostk init\" and \"nostk editProfile\".")
 		return err
 	}
-	sk, err := readPrivateKey()
+	sk, err := load(hsec)
 	if err != nil {
 		fmt.Println("Nothing key pair. Make key pair.")
 		return err
@@ -408,7 +408,7 @@ func publishMessage(s string) error {
 		return errors.New("Not set text message")
 	}
 
-	sk, err := readPrivateKey()
+	sk, err := load(hsec)
 	if err != nil {
 		fmt.Println("Nothing key pair. Make key pair.")
 		return err
@@ -465,7 +465,7 @@ publishRelayList {{{
 */
 func publishRelayList() error {
 	p := make(map[string]RwFlag)
-	b, err := readRelayList()
+	b, err := load(relays)
 	if err != nil {
 		return err
 	}
@@ -489,7 +489,7 @@ func publishRelayList() error {
 		tags = append(tags, t)
 	}
 
-	sk, err := readPrivateKey()
+	sk, err := load(hsec)
 	if err != nil {
 		fmt.Println("Nothing key pair. Make key pair.")
 		return err
@@ -561,7 +561,7 @@ getRelayList {{{
 */
 func getRelayList(rl *[]string) error {
 	p := make(map[string]RwFlag)
-	b, err := readRelayList()
+	b, err := load(relays)
 	if err != nil {
 		return err
 	}
@@ -604,25 +604,6 @@ func saveRelays(rl []string) error {
 // }}}
 
 /*
-readPrivateKey {{{
-*/
-func readPrivateKey() (string, error) {
-	var k []string
-	dir, err := getDir()
-	if err != nil {
-		return "", err
-	}
-	path := filepath.Join(dir, hsec)
-	b, err := ioutil.ReadFile(path)
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimRight(string(b)), nil
-}
-
-// }}}
-
-/*
 setCustomEmoji {{{
 */
 func setCustomEmoji(s string, tgs *nostr.Tags) error {
@@ -650,7 +631,7 @@ func setCustomEmoji(s string, tgs *nostr.Tags) error {
 getCustomEmoji {{{
 */
 func getCustomEmoji(ts *map[string]string) error {
-	b, err := readCustomEmojiList()
+	b, err := load(emoji)
 	if err != nil {
 		return err
 	}
@@ -727,53 +708,14 @@ func createCustomEmojiList() error {
 // }}}
 
 /*
-readProfile {{{
+load {{{
 */
-func readProfile() (string, error) {
+func load(fn string) (string, error) {
 	d, err := getDir()
 	if err != nil {
 		return "", err
 	}
-	path := filepath.Join(d, profile)
-	b, err := ioutil.ReadFile(path)
-	if err != nil {
-		return "", err
-	}
-	r := strings.ReplaceAll(string(b), "\n", "")
-	return r, nil
-}
-
-//}}}
-
-/*
-readRelayList {{{
-*/
-func readRelayList() (string, error) {
-	//var k [] string
-	d, err := getDir()
-	if err != nil {
-		return "", err
-	}
-	path := filepath.Join(d, relays)
-	b, err := ioutil.ReadFile(path)
-	if err != nil {
-		return "", err
-	}
-	r := strings.ReplaceAll(string(b), "\n", "")
-	return r, nil
-}
-
-//}}}
-
-/*
-readCustomEmojiList {{{
-*/
-func readCustomEmojiList() (string, error) {
-	d, err := getDir()
-	if err != nil {
-		return "", err
-	}
-	path := filepath.Join(d, emoji)
+	path := filepath.Join(d, fn)
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		return "", err
