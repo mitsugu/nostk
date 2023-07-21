@@ -1,30 +1,30 @@
 package main
 
 import (
-	"os"
-	"time"
-	"os/exec"
-	"strings"
 	"bufio"
-	"io/ioutil"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
+	"io/ioutil"
+	"log"
+	"os"
+	"os/exec"
+	"strings"
+	"time"
 )
 
 const (
 	secretDir = "/.nostk"
-	hsec	= ".hsec"
-	nsec	= ".nsec"
-	hpub	= ".hpub"
-	npub	= ".npub"
-	relays	= "relays.json"
-	profile	= "profile.json"
-	emoji	= "customemoji.json"
+	hsec      = ".hsec"
+	nsec      = ".nsec"
+	hpub      = ".hpub"
+	npub      = ".npub"
+	relays    = "relays.json"
+	profile   = "profile.json"
+	emoji     = "customemoji.json"
 )
 
 type ProfileMetadata struct {
@@ -98,7 +98,7 @@ func main() {
 			}
 		} else {
 			buff, err := readStdIn()
-			if err!=nil {
+			if err != nil {
 				fmt.Println("Nothing text message.")
 				log.Fatal(errors.New("Not set text message"))
 				os.Exit(1)
@@ -110,6 +110,7 @@ func main() {
 		}
 	}
 }
+
 // }}}
 
 /*
@@ -117,17 +118,17 @@ dispHelp {{{
 */
 func dispHelp() {
 	const (
-		usage				= "Usage :\n  nostk <sub-command> [param...]"
-		subcommand			= "    sub-command :"
-		strInit				= "        init : Initializing the nostk environment"
-		genkey				= "        genkey : create Prive Key and Public Key"
-		strListRelay		= "        lsRelay : Show relay list"
-		strEditRelay		= "        editRelays : edit relay list."
-		strPubRelay			= "        pubRelays : Publish relay list."
-		strEditProfile		= "        editProfile : Edit your profile."
-		strCustomEmoji		= "        editEmoji : Edit custom emoji list."
-		strPublishProfile	= "        pubProfile: Publish your profile."
-		strPublishMessage	= "        pubMessage <text message>: Publish message to relays."
+		usage             = "Usage :\n  nostk <sub-command> [param...]"
+		subcommand        = "    sub-command :"
+		strInit           = "        init : Initializing the nostk environment"
+		genkey            = "        genkey : create Prive Key and Public Key"
+		strListRelay      = "        lsRelay : Show relay list"
+		strEditRelay      = "        editRelays : edit relay list."
+		strPubRelay       = "        pubRelays : Publish relay list."
+		strEditProfile    = "        editProfile : Edit your profile."
+		strCustomEmoji    = "        editEmoji : Edit custom emoji list."
+		strPublishProfile = "        pubProfile: Publish your profile."
+		strPublishMessage = "        pubMessage <text message>: Publish message to relays."
 	)
 
 	fmt.Println(usage)
@@ -400,7 +401,7 @@ func publishProfile() error {
 		return err
 	}
 
-	pr := strings.Replace(s,"\\n","\n",-1)
+	pr := strings.Replace(s, "\\n", "\n", -1)
 	ev := nostr.Event{
 		PubKey:    pk,
 		CreatedAt: nostr.Now(),
@@ -459,7 +460,7 @@ func publishMessage(s string) error {
 	}
 
 	tgs := nostr.Tags{}
-	if err := setCustomEmoji(s, &tgs); err!=nil {
+	if err := setCustomEmoji(s, &tgs); err != nil {
 		return err
 	}
 
@@ -496,7 +497,7 @@ func publishMessage(s string) error {
 // }}}
 
 /*
-	publishRelayList {{{
+publishRelayList {{{
 */
 func publishRelayList() error {
 	p := make(map[string]RwFlag)
@@ -509,19 +510,19 @@ func publishRelayList() error {
 		return err
 	}
 	const (
-		cRead	= "read"
-		cWrite	= "write"
+		cRead  = "read"
+		cWrite = "write"
 	)
 	tags := nostr.Tags{}
 	for i := range p {
-		t := nostr.Tag {"r", i}
-	    if p[i].Read == true && p[i].Write == true {
-		}else if p[i].Read == true {
+		t := nostr.Tag{"r", i}
+		if p[i].Read == true && p[i].Write == true {
+		} else if p[i].Read == true {
 			t = append(t, cRead)
-		}else if p[i].Write == true {
+		} else if p[i].Write == true {
 			t = append(t, cWrite)
 		}
-		tags = append(tags,t)
+		tags = append(tags, t)
 	}
 
 	sk, err := readPrivateKey()
@@ -569,6 +570,7 @@ func publishRelayList() error {
 
 	return nil
 }
+
 // }}}
 
 /*
@@ -663,16 +665,16 @@ func readPrivateKey() (string, error) {
 // }}}
 
 /*
-	setCustomEmoji {{{
+setCustomEmoji {{{
 */
-func setCustomEmoji(s string, tgs *nostr.Tags)error{
+func setCustomEmoji(s string, tgs *nostr.Tags) error {
 	*tgs = nil
 	ts := make(map[string]string)
-	if err := getCustomEmoji(&ts);err!=nil {
-		return  err
+	if err := getCustomEmoji(&ts); err != nil {
+		return err
 	}
 	var t []string
-	for i:=range ts {
+	for i := range ts {
 		if strings.Contains(s, ":"+i+":") {
 			t = nil
 			t = append(t, "emoji")
@@ -683,14 +685,15 @@ func setCustomEmoji(s string, tgs *nostr.Tags)error{
 	}
 	return nil
 }
+
 // }}}
 
 /*
-	getCustomEmoji {{{
+getCustomEmoji {{{
 */
 func getCustomEmoji(ts *map[string]string) error {
 	b, err := readCustomEmojiList()
-	if err!=nil {
+	if err != nil {
 		return err
 	}
 	err = json.Unmarshal([]byte(b), ts)
@@ -699,6 +702,7 @@ func getCustomEmoji(ts *map[string]string) error {
 	}
 	return nil
 }
+
 // }}}
 
 /*
@@ -765,7 +769,7 @@ createCustomEmojiList {{{
 */
 func createCustomEmojiList() error {
 	p := map[string]string{
-		"name" : "url",
+		"name": "url",
 	}
 	s, err := json.Marshal(p)
 	if err != nil {
@@ -856,16 +860,16 @@ func readCustomEmojiList() (string, error) {
 //}}}
 
 /*
-  readStdIn {{{
+readStdIn {{{
 */
-func readStdIn() (string,error) {
+func readStdIn() (string, error) {
 	rs := []string{}
 	cn := make(chan string, 1)
-		go func() {
+	go func() {
 		sc := bufio.NewScanner(os.Stdin)
 		for sc.Scan() {
-			rs = append(rs,sc.Text())
-			rs = append(rs,"\n")
+			rs = append(rs, sc.Text())
+			rs = append(rs, "\n")
 		}
 		b := strings.Join(rs, "")
 		cn <- b
@@ -874,11 +878,10 @@ func readStdIn() (string,error) {
 	defer timer.Stop()
 	select {
 	case text := <-cn:
-		return text,nil
+		return text, nil
 	case <-timer.C:
 		return "", errors.New("Time out input from standerd input")
 	}
 }
 
 // }}}
-
