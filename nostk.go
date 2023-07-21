@@ -74,15 +74,15 @@ func main() {
 			log.Fatal(err)
 		}
 	case "editRelays":
-		if err := editRelayList(); err != nil {
+		if err := edit(relays); err != nil {
 			log.Fatal(err)
 		}
 	case "editProfile":
-		if err := editProfile(); err != nil {
+		if err := edit(profile); err != nil {
 			log.Fatal(err)
 		}
 	case "editEmoji":
-		if err := editCustomEmojiList(); err != nil {
+		if err := edit(emoji); err != nil {
 			log.Fatal(err)
 		}
 	case "pubProfile":
@@ -251,9 +251,9 @@ func listRelays() error {
 // }}}
 
 /*
-editRelayList {{{
+edit {{{
 */
-func editRelayList() error {
+func edit(fn string) error {
 	e := os.Getenv("EDITOR")
 	if e == "" {
 		return errors.New("Not set EDITOR environment variables")
@@ -264,68 +264,8 @@ func editRelayList() error {
 	}
 	path := filepath.Join(d, relays)
 	if _, err := os.Stat(path); err != nil {
-		fmt.Println("Not found relay list. Use \"nostk init\"")
-		return errors.New("Not found relay list")
-	}
-	c := exec.Command(e, path)
-	c.Stdin = os.Stdin
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	if err := c.Run(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// }}}
-
-/*
-editCustomEmojiList {{{
-*/
-func editCustomEmojiList() error {
-	e := os.Getenv("EDITOR")
-	if e == "" {
-		return errors.New("Not set EDITOR environment variables")
-	}
-	d, err := getDir()
-	if err != nil {
-		return err
-	}
-	path := filepath.Join(d, emoji)
-	if _, err := os.Stat(path); err != nil {
-		fmt.Println("Not found custom emoji list. Use \"nostk init\"")
-		return errors.New("Not found custom emoji list")
-	}
-	c := exec.Command(e, path)
-	c.Stdin = os.Stdin
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	if err := c.Run(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// }}}
-
-/*
-editProfile {{{
-*/
-func editProfile() error {
-	e := os.Getenv("EDITOR")
-	if e == "" {
-		return errors.New("Not set EDITOR environment variables")
-	}
-	d, err := getDir()
-	if err != nil {
-		return err
-	}
-	path := filepath.Join(d, profile)
-	if _, err := os.Stat(path); err != nil {
-		fmt.Println("Not found profile file.")
-		return errors.New("Not found profile file")
+		fmt.Printf("Not found %q. Use \"nostk init\"\n", fn)
+		return fmt.Errorf("Not found %q. Use \"nostk init\"\n", fn)
 	}
 	c := exec.Command(e, path)
 	c.Stdin = os.Stdin
