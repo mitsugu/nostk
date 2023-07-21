@@ -859,11 +859,16 @@ func readCustomEmojiList() (string, error) {
   readStdIn {{{
 */
 func readStdIn() (string,error) {
+	rs := []string{}
 	cn := make(chan string, 1)
 		go func() {
 		sc := bufio.NewScanner(os.Stdin)
-		sc.Scan()
-		cn <- sc.Text()
+		for sc.Scan() {
+			rs = append(rs,sc.Text())
+			rs = append(rs,"\n")
+		}
+		b := strings.Join(rs, "")
+		cn <- b
 	}()
 	timer := time.NewTimer(time.Second)
 	defer timer.Stop()
