@@ -154,15 +154,17 @@ initEnv {{{
 */
 func initEnv() error {
 	// make skeleton of user profile
-	if err := createProfile(); err != nil {
+	if err := createProfile(profile, ProfileMetadata{"", "", "", "", "", "", "", ""}); err != nil {
 		return err
 	}
+	p := make(map[string]RwFlag)
+	p[""] = RwFlag{true, true}
 	// make skeleton of user profile
-	if err := createRelayList(); err != nil {
+	if err := create(relays, p); err != nil {
 		return err
 	}
 	// make skeleton of custom emoji list
-	if err := createCustomEmojiList(); err != nil {
+	if err := create(emoji, map[string]string{"name": "url"}); err != nil {
 		return err
 	}
 	return nil
@@ -585,11 +587,10 @@ func getCustomEmoji(ts *map[string]string) error {
 // }}}
 
 /*
-createProfile {{{
+create {{{
 */
-func createProfile() error {
-	p := ProfileMetadata{"", "", "", "", "", "", "", ""}
-	s, err := json.Marshal(p)
+func create(fn string, v any) error {
+	s, err := json.Marshal(v)
 	if err != nil {
 		return err
 	}
@@ -598,50 +599,7 @@ func createProfile() error {
 	if err != nil {
 		return err
 	}
-	path := filepath.Join(d, profile)
-	return ioutil.WriteFile(path, s, 0644)
-}
-
-// }}}
-
-/*
-createRelayList {{{
-*/
-func createRelayList() error {
-	p := make(map[string]RwFlag)
-	p[""] = RwFlag{true, true}
-	s, err := json.Marshal(p)
-	if err != nil {
-		return err
-	}
-
-	d, err := getDir()
-	if err != nil {
-		return err
-	}
-	path := filepath.Join(d, relays)
-	return ioutil.WriteFile(path, s, 0644)
-}
-
-// }}}
-
-/*
-createCustomEmojiList {{{
-*/
-func createCustomEmojiList() error {
-	p := map[string]string{
-		"name": "url",
-	}
-	s, err := json.Marshal(p)
-	if err != nil {
-		return err
-	}
-
-	d, err := getDir()
-	if err != nil {
-		return err
-	}
-	path := filepath.Join(d, emoji)
+	path := filepath.Join(d, fn)
 	return ioutil.WriteFile(path, s, 0644)
 }
 
