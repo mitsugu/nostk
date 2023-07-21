@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -101,7 +102,7 @@ func main() {
 		} else {
 			buff, err := readStdIn()
 			if err != nil {
-				fmt.Println("Nothing text message.")
+				fmt.Printf("Nothing text message: %v\n", err)
 				log.Fatal(errors.New("Not set text message"))
 				os.Exit(1)
 			}
@@ -865,16 +866,14 @@ func readCustomEmojiList() (string, error) {
 readStdIn {{{
 */
 func readStdIn() (string, error) {
-	rs := []string{}
 	cn := make(chan string, 1)
 	go func() {
 		sc := bufio.NewScanner(os.Stdin)
+		var buf bytes.Buffer
 		for sc.Scan() {
-			rs = append(rs, sc.Text())
-			rs = append(rs, "\n")
+			fmt.Fprintln(&buf, sc.Text())
 		}
-		b := strings.Join(rs, "")
-		cn <- b
+		cn <- buf.String()
 	}()
 	timer := time.NewTimer(time.Second)
 	defer timer.Stop()
