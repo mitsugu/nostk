@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"io/ioutil"
 	"context"
+	"regexp"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -463,13 +464,16 @@ func publishMessage(s string) error {
 		return err
 	}
 
-	s = strings.Replace(s,"\\n","\n",-1)
+	re := regexp.MustCompile(`[^\\]\\n`)
+	txt := re.ReplaceAllString(s, "\n")
+	re = regexp.MustCompile(`\\\\n`)
+	txt = re.ReplaceAllString(txt, "\\n")
 	ev := nostr.Event{
 		PubKey:    pk,
 		CreatedAt: nostr.Now(),
 		Kind:      nostr.KindTextNote,
 		Tags:      tgs,
-		Content:   s,
+		Content:   txt,
 	}
 
 	// calling Sign sets the event ID field and the event Sig field
