@@ -28,6 +28,7 @@ const (
 	relays    = "relays.json"
 	profile   = "profile.json"
 	emoji     = "customemoji.json"
+	contact   = "contacts.json"
 )
 
 type ProfileMetadata struct {
@@ -44,6 +45,11 @@ type ProfileMetadata struct {
 type RwFlag struct {
 	Read  bool `json:"read"`
 	Write bool `json:"write"`
+}
+
+type CONTACT struct {
+	Url	 string	`json:"url"`
+	Name string	`json:"name"`
 }
 
 /*
@@ -159,12 +165,18 @@ func initEnv() error {
 	}
 	p := make(map[string]RwFlag)
 	p[""] = RwFlag{true, true}
-	// make skeleton of user profile
+	// make skeleton of relay list
 	if err := create(relays, p); err != nil {
 		return err
 	}
 	// make skeleton of custom emoji list
 	if err := create(emoji, map[string]string{"name": "url"}); err != nil {
+		return err
+	}
+	// make skeleton of contact list
+	c := make(map[string]CONTACT)
+	c["hex_pubkey"] = CONTACT{"", ""}
+	if err := create(contact, c); err != nil {
 		return err
 	}
 	return nil
