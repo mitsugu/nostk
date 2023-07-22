@@ -1,30 +1,33 @@
 package main
 
 import (
-	"os"
-	"time"
-	"os/exec"
-	"strings"
 	"bufio"
-	"io/ioutil"
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"time"
+
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
 )
 
 const (
-	secretDir = "/.nostk"
-	hsec	= ".hsec"
-	nsec	= ".nsec"
-	hpub	= ".hpub"
-	npub	= ".npub"
-	relays	= "relays.json"
-	profile	= "profile.json"
-	emoji	= "customemoji.json"
+	secretDir = ".nostk"
+	hsec      = ".hsec"
+	nsec      = ".nsec"
+	hpub      = ".hpub"
+	npub      = ".npub"
+	relays    = "relays.json"
+	profile   = "profile.json"
+	emoji     = "customemoji.json"
 )
 
 type ProfileMetadata struct {
@@ -71,15 +74,15 @@ func main() {
 			log.Fatal(err)
 		}
 	case "editRelays":
-		if err := editRelayList(); err != nil {
+		if err := edit(relays); err != nil {
 			log.Fatal(err)
 		}
 	case "editProfile":
-		if err := editProfile(); err != nil {
+		if err := edit(profile); err != nil {
 			log.Fatal(err)
 		}
 	case "editEmoji":
-		if err := editCustomEmojiList(); err != nil {
+		if err := edit(emoji); err != nil {
 			log.Fatal(err)
 		}
 	case "pubProfile":
@@ -98,8 +101,8 @@ func main() {
 			}
 		} else {
 			buff, err := readStdIn()
-			if err!=nil {
-				fmt.Println("Nothing text message.")
+			if err != nil {
+				fmt.Printf("Nothing text message: %v\n", err)
 				log.Fatal(errors.New("Not set text message"))
 				os.Exit(1)
 			}
@@ -110,6 +113,7 @@ func main() {
 		}
 	}
 }
+
 // }}}
 
 /*
@@ -117,17 +121,17 @@ dispHelp {{{
 */
 func dispHelp() {
 	const (
-		usage				= "Usage :\n  nostk <sub-command> [param...]"
-		subcommand			= "    sub-command :"
-		strInit				= "        init : Initializing the nostk environment"
-		genkey				= "        genkey : create Prive Key and Public Key"
-		strListRelay		= "        lsRelay : Show relay list"
-		strEditRelay		= "        editRelays : edit relay list."
-		strPubRelay			= "        pubRelays : Publish relay list."
-		strEditProfile		= "        editProfile : Edit your profile."
-		strCustomEmoji		= "        editEmoji : Edit custom emoji list."
-		strPublishProfile	= "        pubProfile: Publish your profile."
-		strPublishMessage	= "        pubMessage <text message>: Publish message to relays."
+		usage             = "Usage :\n  nostk <sub-command> [param...]"
+		subcommand        = "    sub-command :"
+		strInit           = "        init : Initializing the nostk environment"
+		genkey            = "        genkey : create Prive Key and Public Key"
+		strListRelay      = "        lsRelay : Show relay list"
+		strEditRelay      = "        editRelays : edit relay list."
+		strPubRelay       = "        pubRelays : Publish relay list."
+		strEditProfile    = "        editProfile : Edit your profile."
+		strCustomEmoji    = "        editEmoji : Edit custom emoji list."
+		strPublishProfile = "        pubProfile: Publish your profile."
+		strPublishMessage = "        pubMessage <text message>: Publish message to relays."
 	)
 
 	fmt.Println(usage)
@@ -150,15 +154,17 @@ initEnv {{{
 */
 func initEnv() error {
 	// make skeleton of user profile
-	if err := createProfile(); err != nil {
+	if err := create(profile, ProfileMetadata{"", "", "", "", "", "", "", ""}); err != nil {
 		return err
 	}
+	p := make(map[string]RwFlag)
+	p[""] = RwFlag{true, true}
 	// make skeleton of user profile
-	if err := createRelayList(); err != nil {
+	if err := create(relays, p); err != nil {
 		return err
 	}
 	// make skeleton of custom emoji list
-	if err := createCustomEmojiList(); err != nil {
+	if err := create(emoji, map[string]string{"name": "url"}); err != nil {
 		return err
 	}
 	return nil
@@ -178,20 +184,20 @@ func genKey() error {
 	if err != nil {
 		return err
 	}
-	nsec, npub, err := genNKey(sk, pk)
+	ns, np, err := genNKey(sk, pk)
 	if err != nil {
 		return err
 	}
-	if err = saveHSecKey(dirName, sk); err != nil {
+	if err = save(dirName, hsec, sk); err != nil {
 		return err
 	}
-	if err = saveHPubKey(dirName, pk); err != nil {
+	if err = save(dirName, hpub, pk); err != nil {
 		return err
 	}
-	if err = saveNSecKey(dirName, nsec); err != nil {
+	if err = save(dirName, nsec, ns); err != nil {
 		return err
 	}
-	if err = saveNPubKey(dirName, npub); err != nil {
+	if err = save(dirName, npub, np); err != nil {
 		return err
 	}
 	return nil
@@ -218,50 +224,6 @@ func genNKey(sk string, pk string) (string, string, error) {
 	return nsec, npub, nil
 }
 
-func saveHSecKey(dn string, sk string) error {
-	path := dn + "/" + hsec
-	fp, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer fp.Close()
-	fp.WriteString(sk)
-	return nil
-}
-
-func saveNSecKey(dn string, nkey string) error {
-	path := dn + "/" + nsec
-	fp, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer fp.Close()
-	fp.WriteString(nkey)
-	return nil
-}
-
-func saveHPubKey(dn string, pk string) error {
-	path := dn + "/" + hpub
-	fp, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer fp.Close()
-	fp.WriteString(pk)
-	return nil
-}
-
-func saveNPubKey(dn string, nkey string) error {
-	path := dn + "/" + npub
-	fp, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer fp.Close()
-	fp.WriteString(nkey)
-	return nil
-}
-
 // }}}
 
 /*
@@ -269,7 +231,7 @@ Listing Relays {{{
 */
 func listRelays() error {
 	p := make(map[string]RwFlag)
-	b, err := readRelayList()
+	b, err := load(relays)
 	if err != nil {
 		return err
 	}
@@ -286,106 +248,16 @@ func listRelays() error {
 // }}}
 
 /*
-editRelayList {{{
-*/
-func editRelayList() error {
-	e := os.Getenv("EDITOR")
-	if e == "" {
-		return errors.New("Not set EDITOR environmental variables")
-	}
-	d, err := getDir()
-	if err != nil {
-		return err
-	}
-	path := d + "/" + relays
-	if _, err := os.Stat(path); err != nil {
-		fmt.Println("Not found relay list. Use \"nostk init\"")
-		return errors.New("Not found relay list")
-	}
-	c := exec.Command(e, path)
-	c.Stdin = os.Stdin
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	if err := c.Run(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// }}}
-
-/*
-editCustomEmojiList {{{
-*/
-func editCustomEmojiList() error {
-	e := os.Getenv("EDITOR")
-	if e == "" {
-		return errors.New("Not set EDITOR environmental variables")
-	}
-	d, err := getDir()
-	if err != nil {
-		return err
-	}
-	path := d + "/" + emoji
-	if _, err := os.Stat(path); err != nil {
-		fmt.Println("Not found custom emoji list. Use \"nostk init\"")
-		return errors.New("Not found custom emoji list")
-	}
-	c := exec.Command(e, path)
-	c.Stdin = os.Stdin
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	if err := c.Run(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// }}}
-
-/*
-editProfile {{{
-*/
-func editProfile() error {
-	e := os.Getenv("EDITOR")
-	if e == "" {
-		return errors.New("Not set EDITOR environmental variables")
-	}
-	d, err := getDir()
-	if err != nil {
-		return err
-	}
-	path := d + "/" + profile
-	if _, err := os.Stat(path); err != nil {
-		fmt.Println("Not found profile file.")
-		return errors.New("Not found profile file")
-	}
-	c := exec.Command(e, path)
-	c.Stdin = os.Stdin
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	if err := c.Run(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// }}}
-
-/*
 publishProfile {{{
 */
 func publishProfile() error {
 	var rl []string
-	s, err := readProfile()
+	s, err := load(profile)
 	if err != nil {
 		fmt.Println("Not found your profile. Use \"nostk init\" and \"nostk editProfile\".")
 		return err
 	}
-	sk, err := readPrivateKey()
+	sk, err := load(hsec)
 	if err != nil {
 		fmt.Println("Nothing key pair. Make key pair.")
 		return err
@@ -400,7 +272,7 @@ func publishProfile() error {
 		return err
 	}
 
-	pr := strings.Replace(s,"\\n","\n",-1)
+	pr := strings.Replace(s, "\\n", "\n", -1)
 	ev := nostr.Event{
 		PubKey:    pk,
 		CreatedAt: nostr.Now(),
@@ -443,7 +315,7 @@ func publishMessage(s string) error {
 		return errors.New("Not set text message")
 	}
 
-	sk, err := readPrivateKey()
+	sk, err := load(hsec)
 	if err != nil {
 		fmt.Println("Nothing key pair. Make key pair.")
 		return err
@@ -459,7 +331,7 @@ func publishMessage(s string) error {
 	}
 
 	tgs := nostr.Tags{}
-	if err := setCustomEmoji(s, &tgs); err!=nil {
+	if err := setCustomEmoji(s, &tgs); err != nil {
 		return err
 	}
 
@@ -496,11 +368,11 @@ func publishMessage(s string) error {
 // }}}
 
 /*
-	publishRelayList {{{
+publishRelayList {{{
 */
 func publishRelayList() error {
 	p := make(map[string]RwFlag)
-	b, err := readRelayList()
+	b, err := load(relays)
 	if err != nil {
 		return err
 	}
@@ -509,22 +381,22 @@ func publishRelayList() error {
 		return err
 	}
 	const (
-		cRead	= "read"
-		cWrite	= "write"
+		cRead  = "read"
+		cWrite = "write"
 	)
 	tags := nostr.Tags{}
 	for i := range p {
-		t := nostr.Tag {"r", i}
-	    if p[i].Read == true && p[i].Write == true {
-		}else if p[i].Read == true {
+		t := nostr.Tag{"r", i}
+		if p[i].Read == true && p[i].Write == true {
+		} else if p[i].Read == true {
 			t = append(t, cRead)
-		}else if p[i].Write == true {
+		} else if p[i].Write == true {
 			t = append(t, cWrite)
 		}
-		tags = append(tags,t)
+		tags = append(tags, t)
 	}
 
-	sk, err := readPrivateKey()
+	sk, err := load(hsec)
 	if err != nil {
 		fmt.Println("Nothing key pair. Make key pair.")
 		return err
@@ -569,6 +441,7 @@ func publishRelayList() error {
 
 	return nil
 }
+
 // }}}
 
 /*
@@ -577,9 +450,9 @@ getDir {{{
 func getDir() (string, error) {
 	home := os.Getenv("HOME")
 	if home == "" {
-		return "", errors.New("Not set HOME environmental variables")
+		return "", errors.New("Not set HOME environment variables")
 	}
-	home += secretDir
+	home = filepath.Join(home, secretDir)
 	if _, err := os.Stat(home); err != nil {
 		if err = os.Mkdir(home, 0700); err != nil {
 			return "", err
@@ -595,7 +468,7 @@ getRelayList {{{
 */
 func getRelayList(rl *[]string) error {
 	p := make(map[string]RwFlag)
-	b, err := readRelayList()
+	b, err := load(relays)
 	if err != nil {
 		return err
 	}
@@ -612,67 +485,16 @@ func getRelayList(rl *[]string) error {
 // }}}
 
 /*
-saveRelays {{{
+setCustomEmoji {{{
 */
-func saveRelays(rl []string) error {
-	dn, err := getDir()
-	if err != nil {
-		return err
-	}
-
-	path := dn + "/" + relays
-	fp, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer fp.Close()
-	for _, l := range rl {
-		_, err = fp.WriteString(l + "\n")
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// }}}
-
-/*
-readPrivateKey {{{
-*/
-func readPrivateKey() (string, error) {
-	var k []string
-	dir, err := getDir()
-	if err != nil {
-		return "", err
-	}
-	path := dir + "/" + hsec
-	if _, err := os.Stat(path); err != nil {
-		return "", err
-	}
-	b, err := ioutil.ReadFile(path)
-	rs := strings.Split(string(b), "\n")
-	for _, r := range rs {
-		if r != "" { // 最終行の\nにより発生する余分なレコードを排除
-			k = append(k, r)
-		}
-	}
-	return k[0], nil
-}
-
-// }}}
-
-/*
-	setCustomEmoji {{{
-*/
-func setCustomEmoji(s string, tgs *nostr.Tags)error{
+func setCustomEmoji(s string, tgs *nostr.Tags) error {
 	*tgs = nil
 	ts := make(map[string]string)
-	if err := getCustomEmoji(&ts);err!=nil {
-		return  err
+	if err := getCustomEmoji(&ts); err != nil {
+		return err
 	}
 	var t []string
-	for i:=range ts {
+	for i := range ts {
 		if strings.Contains(s, ":"+i+":") {
 			t = nil
 			t = append(t, "emoji")
@@ -683,14 +505,15 @@ func setCustomEmoji(s string, tgs *nostr.Tags)error{
 	}
 	return nil
 }
+
 // }}}
 
 /*
-	getCustomEmoji {{{
+getCustomEmoji {{{
 */
 func getCustomEmoji(ts *map[string]string) error {
-	b, err := readCustomEmojiList()
-	if err!=nil {
+	b, err := load(emoji)
+	if err != nil {
 		return err
 	}
 	err = json.Unmarshal([]byte(b), ts)
@@ -699,14 +522,14 @@ func getCustomEmoji(ts *map[string]string) error {
 	}
 	return nil
 }
+
 // }}}
 
 /*
-createProfile {{{
+create {{{
 */
-func createProfile() error {
-	p := ProfileMetadata{"", "", "", "", "", "", "", ""}
-	s, err := json.Marshal(p)
+func create(fn string, v any) error {
+	s, err := json.Marshal(v)
 	if err != nil {
 		return err
 	}
@@ -715,114 +538,21 @@ func createProfile() error {
 	if err != nil {
 		return err
 	}
-	path := d + "/" + profile
-	fp, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer fp.Close()
-	_, err = fp.WriteString(string(s))
-	if err != nil {
-		return err
-	}
-	return nil
+	path := filepath.Join(d, fn)
+	return ioutil.WriteFile(path, s, 0644)
 }
 
 // }}}
 
 /*
-createRelayList {{{
+load {{{
 */
-func createRelayList() error {
-	p := make(map[string]RwFlag)
-	p[""] = RwFlag{true, true}
-	s, err := json.Marshal(p)
-	if err != nil {
-		return err
-	}
-
-	d, err := getDir()
-	if err != nil {
-		return err
-	}
-	path := d + "/" + relays
-	fp, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer fp.Close()
-	_, err = fp.WriteString(string(s))
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// }}}
-
-/*
-createCustomEmojiList {{{
-*/
-func createCustomEmojiList() error {
-	p := map[string]string{
-		"name" : "url",
-	}
-	s, err := json.Marshal(p)
-	if err != nil {
-		return err
-	}
-
-	d, err := getDir()
-	if err != nil {
-		return err
-	}
-	path := d + "/" + emoji
-	fp, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer fp.Close()
-	_, err = fp.WriteString(string(s))
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// }}}
-
-/*
-readProfile {{{
-*/
-func readProfile() (string, error) {
+func load(fn string) (string, error) {
 	d, err := getDir()
 	if err != nil {
 		return "", err
 	}
-	path := d + "/" + profile
-	if _, err := os.Stat(path); err != nil {
-		return "", err
-	}
-	b, err := ioutil.ReadFile(path)
-	r := strings.ReplaceAll(string(b), "\n", "")
-	return r, nil
-}
-
-//}}}
-
-/*
-readRelayList {{{
-*/
-func readRelayList() (string, error) {
-	//var k [] string
-	d, err := getDir()
-	if err != nil {
-		return "", err
-	}
-	path := d + "/" + relays
-	if _, err := os.Stat(path); err != nil {
-		return "", err
-	}
+	path := filepath.Join(d, fn)
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		return "", err
@@ -834,51 +564,66 @@ func readRelayList() (string, error) {
 //}}}
 
 /*
-readCustomEmojiList {{{
+save {{{
 */
-func readCustomEmojiList() (string, error) {
-	d, err := getDir()
-	if err != nil {
-		return "", err
-	}
-	path := d + "/" + emoji
-	if _, err := os.Stat(path); err != nil {
-		return "", err
-	}
-	b, err := ioutil.ReadFile(path)
-	if err != nil {
-		return "", err
-	}
-	r := strings.ReplaceAll(string(b), "\n", "")
-	return r, nil
+func save(dn string, fn string, value string) error {
+	path := filepath.Join(dn, fn)
+	return ioutil.WriteFile(path, []byte(value), 0644)
 }
 
 //}}}
 
 /*
-  readStdIn {{{
+edit {{{
 */
-func readStdIn() (string,error) {
-	rs := []string{}
+func edit(fn string) error {
+	e := os.Getenv("EDITOR")
+	if e == "" {
+		return errors.New("Not set EDITOR environment variables")
+	}
+	d, err := getDir()
+	if err != nil {
+		return err
+	}
+	path := filepath.Join(d, relays)
+	if _, err := os.Stat(path); err != nil {
+		fmt.Printf("Not found %q. Use \"nostk init\"\n", fn)
+		return fmt.Errorf("Not found %q. Use \"nostk init\"\n", fn)
+	}
+	c := exec.Command(e, path)
+	c.Stdin = os.Stdin
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+	if err := c.Run(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// }}}
+
+/*
+readStdIn {{{
+*/
+func readStdIn() (string, error) {
 	cn := make(chan string, 1)
-		go func() {
+	go func() {
 		sc := bufio.NewScanner(os.Stdin)
+		var buff bytes.Buffer
 		for sc.Scan() {
-			rs = append(rs,sc.Text())
-			rs = append(rs,"\n")
+			fmt.Fprintln(&buff, sc.Text())
 		}
-		b := strings.Join(rs, "")
-		cn <- b
+		cn <- buff.String()
 	}()
 	timer := time.NewTimer(time.Second)
 	defer timer.Stop()
 	select {
 	case text := <-cn:
-		return text,nil
+		return text, nil
 	case <-timer.C:
-		return "", errors.New("Time out input from standerd input")
+		return "", errors.New("Time out input from standard input")
 	}
 }
 
 // }}}
-
