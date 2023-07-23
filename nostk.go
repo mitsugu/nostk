@@ -28,7 +28,7 @@ const (
 	relays    = "relays.json"
 	profile   = "profile.json"
 	emoji     = "customemoji.json"
-	contact   = "contacts.json"
+	contacts  = "contacts.json"
 )
 
 type ProfileMetadata struct {
@@ -91,6 +91,11 @@ func main() {
 		if err := edit(emoji); err != nil {
 			log.Fatal(err)
 		}
+	case "editContacts":
+		log.Println("contacts")
+		if err := edit(contacts); err != nil {
+			log.Fatal(err)
+		}
 	case "pubProfile":
 		if err := publishProfile(); err != nil {
 			log.Fatal(err)
@@ -131,11 +136,12 @@ func dispHelp() {
 		subcommand        = "    sub-command :"
 		strInit           = "        init : Initializing the nostk environment"
 		genkey            = "        genkey : create Prive Key and Public Key"
-		strListRelay      = "        lsRelay : Show relay list"
+		strEditContacts   = "        editContacts : Edit your contact list."
+		strCustomEmoji    = "        editEmoji : Edit custom emoji list."
 		strEditRelay      = "        editRelays : edit relay list."
+		strListRelay      = "        lsRelay : Show relay list"
 		strPubRelay       = "        pubRelays : Publish relay list."
 		strEditProfile    = "        editProfile : Edit your profile."
-		strCustomEmoji    = "        editEmoji : Edit custom emoji list."
 		strPublishProfile = "        pubProfile: Publish your profile."
 		strPublishMessage = "        pubMessage <text message>: Publish message to relays."
 	)
@@ -144,11 +150,12 @@ func dispHelp() {
 	fmt.Println(subcommand)
 	fmt.Println(strInit)
 	fmt.Println(genkey)
-	fmt.Println(strListRelay)
+	fmt.Println(strCustomEmoji)
+	fmt.Println(strEditContacts)
 	fmt.Println(strEditRelay)
+	fmt.Println(strListRelay)
 	fmt.Println(strPubRelay)
 	fmt.Println(strEditProfile)
-	fmt.Println(strCustomEmoji)
 	fmt.Println(strPublishProfile)
 	fmt.Println(strPublishMessage)
 }
@@ -176,7 +183,7 @@ func initEnv() error {
 	// make skeleton of contact list
 	c := make(map[string]CONTACT)
 	c["hex_pubkey"] = CONTACT{"", ""}
-	if err := create(contact, c); err != nil {
+	if err := create(contacts, c); err != nil {
 		return err
 	}
 	return nil
@@ -597,7 +604,7 @@ func edit(fn string) error {
 	if err != nil {
 		return err
 	}
-	path := filepath.Join(d, relays)
+	path := filepath.Join(d, fn)
 	if _, err := os.Stat(path); err != nil {
 		fmt.Printf("Not found %q. Use \"nostk init\"\n", fn)
 		return fmt.Errorf("Not found %q. Use \"nostk init\"\n", fn)
