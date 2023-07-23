@@ -140,8 +140,9 @@ func dispHelp() {
 		strEditRelay      = "        editRelays : edit relay list."
 		strPubRelay       = "        pubRelays : Publish relay list."
 		strEditProfile    = "        editProfile : Edit your profile."
-		strPublishProfile = "        pubProfile: Publish your profile."
+		strPublishProfile = "        pubProfile : Publish your profile."
 		strPublishMessage = "        pubMessage <text message>: Publish message to relays."
+		strDispHome       = "        dispHome [number] : Display the specified number of home timelines. The default number is 20."
 	)
 
 	fmt.Println(usage)
@@ -155,6 +156,7 @@ func dispHelp() {
 	fmt.Println(strEditProfile)
 	fmt.Println(strPublishProfile)
 	fmt.Println(strPublishMessage)
+	fmt.Println(strDispHome)
 }
 
 // }}}
