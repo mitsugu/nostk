@@ -75,10 +75,6 @@ func main() {
 		if err := genKey(); err != nil {
 			log.Fatal(err)
 		}
-	case "lsRelays":
-		if err := listRelays(); err != nil {
-			log.Fatal(err)
-		}
 	case "editRelays":
 		if err := edit(relays); err != nil {
 			log.Fatal(err)
@@ -122,6 +118,9 @@ func main() {
 				os.Exit(1)
 			}
 		}
+	default:
+		log.Fatal(errors.New("Subcommand does not exist."))
+		os.Exit(1)
 	}
 }
 
@@ -139,7 +138,6 @@ func dispHelp() {
 		strEditContacts   = "        editContacts : Edit your contact list."
 		strCustomEmoji    = "        editEmoji : Edit custom emoji list."
 		strEditRelay      = "        editRelays : edit relay list."
-		strListRelay      = "        lsRelay : Show relay list"
 		strPubRelay       = "        pubRelays : Publish relay list."
 		strEditProfile    = "        editProfile : Edit your profile."
 		strPublishProfile = "        pubProfile: Publish your profile."
@@ -153,7 +151,6 @@ func dispHelp() {
 	fmt.Println(strCustomEmoji)
 	fmt.Println(strEditContacts)
 	fmt.Println(strEditRelay)
-	fmt.Println(strListRelay)
 	fmt.Println(strPubRelay)
 	fmt.Println(strEditProfile)
 	fmt.Println(strPublishProfile)
@@ -241,27 +238,6 @@ func genNKey(sk string, pk string) (string, string, error) {
 		return "", "", err
 	}
 	return nsec, npub, nil
-}
-
-// }}}
-
-/*
-Listing Relays {{{
-*/
-func listRelays() error {
-	p := make(map[string]RwFlag)
-	b, err := load(relays)
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal([]byte(b), &p)
-	if err != nil {
-		return err
-	}
-	for i := range p {
-		fmt.Printf("%v R:%v W:%v\n", i, p[i].Read, p[i].Write)
-	}
-	return nil
 }
 
 // }}}
