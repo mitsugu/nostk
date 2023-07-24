@@ -135,7 +135,7 @@ func dispHelp() {
 		strEditProfile    = "        editProfile : Edit your profile."
 		strPublishProfile = "        pubProfile : Publish your profile."
 		strPublishMessage = "        pubMessage <text message>: Publish message to relays."
-		strDispHome       = "        dispHome [number] : Display the specified number of home timelines. The default number is 20."
+		strDispHome       = "        dispHome [number] [date time]: Display home timelines.\n                                       The default number is 20.\n                                       date time format : \"2023-07-24 17:49:51 JST\""
 	)
 
 	fmt.Println(usage)
@@ -440,7 +440,7 @@ func publishMessage(args []string) error {
 // }}}
 
 /*
-dispHome
+dispHome {{{
 */
 func dispHome(args []string) error {
 	num := 20
@@ -520,7 +520,7 @@ func dispHome(args []string) error {
 	return nil
 }
 
-//
+// }}}
 
 /*
 getDir {{{
@@ -563,7 +563,7 @@ func getRelayList(rl *[]string) error {
 // }}}
 
 /*
-getContactList
+getContactList {{{
 */
 func getContactList(cl *[]string) error {
 	c := make(map[string]CONTACT)
@@ -580,7 +580,7 @@ func getContactList(cl *[]string) error {
 	return nil
 }
 
-//
+// }}}
 
 /*
 setCustomEmoji {{{
