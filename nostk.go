@@ -101,22 +101,9 @@ func main() {
 			log.Fatal(err)
 		}
 	case "pubMessage":
-		if len(os.Args) > 2 {
-			if err := publishMessage(os.Args[2]); err != nil {
-				log.Fatal(err)
-				os.Exit(1)
-			}
-		} else {
-			buff, err := readStdIn()
-			if err != nil {
-				fmt.Printf("Nothing text message: %v\n", err)
-				log.Fatal(errors.New("Not set text message"))
-				os.Exit(1)
-			}
-			if err := publishMessage(buff); err != nil {
-				log.Fatal(err)
-				os.Exit(1)
-			}
+		if err := publishMessage(os.Args); err != nil {
+			log.Fatal(err)
+			os.Exit(1)
 		}
 	default:
 		log.Fatal(errors.New("Subcommand does not exist."))
@@ -302,69 +289,6 @@ func publishProfile() error {
 // }}}
 
 /*
-publishMessage {{{
-*/
-func publishMessage(s string) error {
-	var rl []string
-
-	if len(s) < 1 {
-		fmt.Println("Nothing text message.")
-		return errors.New("Not set text message")
-	}
-
-	sk, err := load(hsec)
-	if err != nil {
-		fmt.Println("Nothing key pair. Make key pair.")
-		return err
-	}
-	pk, err := nostr.GetPublicKey(sk)
-	if err != nil {
-		return err
-	}
-
-	if err := getRelayList(&rl); err != nil {
-		fmt.Println("Nothing relay list. Make a relay list.")
-		return err
-	}
-
-	tgs := nostr.Tags{}
-	if err := setCustomEmoji(s, &tgs); err != nil {
-		return err
-	}
-
-	ev := nostr.Event{
-		PubKey:    pk,
-		CreatedAt: nostr.Now(),
-		Kind:      nostr.KindTextNote,
-		Tags:      tgs,
-		Content:   s,
-	}
-
-	// calling Sign sets the event ID field and the event Sig field
-	ev.Sign(sk)
-
-	// publish the event to two relays
-	ctx := context.Background()
-	for _, url := range rl {
-		relay, err := nostr.RelayConnect(ctx, url)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		_, err = relay.Publish(ctx, ev)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		fmt.Printf("published to %s\n", url)
-	}
-
-	return nil
-}
-
-// }}}
-
-/*
 publishRelayList {{{
 */
 func publishRelayList() error {
@@ -434,6 +358,74 @@ func publishRelayList() error {
 			continue
 		}
 		fmt.Printf("published relay list to %s\n", url)
+	}
+
+	return nil
+}
+
+// }}}
+
+/*
+publishMessage {{{
+*/
+func publishMessage(args []string) error {
+	var s string
+	var err error
+	if len(args)<3 {
+		s, err = readStdIn()
+		if err != nil {
+			return errors.New("Not set text message")
+		}
+	} else {
+		s = args[2]
+	}
+
+	sk, err := load(hsec)
+	if err != nil {
+		fmt.Println("Nothing key pair. Make key pair.")
+		return err
+	}
+	pk, err := nostr.GetPublicKey(sk)
+	if err != nil {
+		return err
+	}
+
+	var rl []string
+	if err := getRelayList(&rl); err != nil {
+		fmt.Println("Nothing relay list. Make a relay list.")
+		return err
+	}
+
+	tgs := nostr.Tags{}
+	if err := setCustomEmoji(s, &tgs); err != nil {
+		return err
+	}
+
+	ev := nostr.Event{
+		PubKey:    pk,
+		CreatedAt: nostr.Now(),
+		Kind:      nostr.KindTextNote,
+		Tags:      tgs,
+		Content:   s,
+	}
+
+	// calling Sign sets the event ID field and the event Sig field
+	ev.Sign(sk)
+
+	// publish the event to two relays
+	ctx := context.Background()
+	for _, url := range rl {
+		relay, err := nostr.RelayConnect(ctx, url)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		_, err = relay.Publish(ctx, ev)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		fmt.Printf("published to %s\n", url)
 	}
 
 	return nil
