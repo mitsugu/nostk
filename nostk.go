@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"strconv"
 
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
@@ -102,6 +103,11 @@ func main() {
 		}
 	case "pubMessage":
 		if err := publishMessage(os.Args); err != nil {
+			log.Fatal(err)
+			os.Exit(1)
+		}
+	case "dispHome":
+		if err := dispHome(os.Args); err != nil {
 			log.Fatal(err)
 			os.Exit(1)
 		}
@@ -434,6 +440,89 @@ func publishMessage(args []string) error {
 // }}}
 
 /*
+dispHome
+*/
+func dispHome(args []string) error {
+	num := 20
+	var ut int64 = 0
+	var err error
+	for i := range args {
+		if i<2 {
+			continue
+		}
+		switch i {
+		case 2:
+			num, err = strconv.Atoi(args[2])
+			if err!=nil {
+				layout := "2006-01-02 15:04:05 MST"
+				tp, err := time.Parse(layout, args[2])
+				if err!= nil {
+					return errors.New("An unknown argument was specified.")
+				} else {
+					ut = tp.Unix()
+				}
+			}
+		case 3:
+			layout := "2006-01-02 15:04:05 MST"
+			tp, err := time.Parse(layout, args[3])
+			if err!=nil {
+				num, err = strconv.Atoi(args[3])
+				if err!= nil {
+					return errors.New("An unknown argument was specified.")
+				}
+			} else {
+				ut = tp.Unix()
+			}
+		}
+	}
+
+	var rs []string
+	if err:=getRelayList(&rs);err!=nil {
+		return err
+	}
+	var npub []string
+	if err:=getContactList(&npub);err!=nil {
+		return err
+	}
+
+	var filters []nostr.Filter
+	if ut > 0 {
+		ts := nostr.Timestamp(ut)
+		filters = []nostr.Filter{{
+			Kinds:   []int{nostr.KindTextNote},
+			Authors: npub,
+			Until : &ts,
+			Limit:   num,
+		}}
+	} else {
+		filters = []nostr.Filter{{
+			Kinds:   []int{nostr.KindTextNote},
+			Authors: npub,
+			Limit:   num,
+		}}
+	}
+
+	ctx := context.Background()
+	pool := nostr.NewSimplePool(ctx)
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	ch := pool.SubManyEose(ctx, rs, filters)
+	fmt.Println("{")
+	for event := range ch {
+		switch event.Kind {
+		case 1:
+			fmt.Printf("\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"},\n",event.ID,event.CreatedAt,event.PubKey,event.Content)
+		}
+	}
+	fmt.Println("}")
+
+	return nil
+}
+
+//
+
+/*
 getDir {{{
 */
 func getDir() (string, error) {
@@ -472,6 +561,26 @@ func getRelayList(rl *[]string) error {
 }
 
 // }}}
+
+/*
+getContactList
+*/
+func getContactList(cl *[]string) error {
+	c := make(map[string]CONTACT)
+	b, err := load(contacts)
+	if err != nil {
+		return err
+	}
+	if err := json.Unmarshal([]byte(b), &c);err!=nil {
+		return err
+	}
+	for i := range c {
+		*cl = append(*cl, i)
+	}
+	return nil
+}
+
+//
 
 /*
 setCustomEmoji {{{
