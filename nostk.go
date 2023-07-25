@@ -512,7 +512,7 @@ func dispHome(args []string) error {
 	for event := range ch {
 		switch event.Kind {
 		case 1:
-			fmt.Printf("\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"},\n",event.ID,event.CreatedAt,event.PubKey,event.Content)
+			fmt.Printf("\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"},\n",event.ID,event.CreatedAt,event.PubKey,strings.Replace(event.Content,"\"", "\\\"",-1))
 		}
 	}
 	fmt.Println("}")
