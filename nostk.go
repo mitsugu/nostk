@@ -130,12 +130,12 @@ func dispHelp() {
 		genkey            = "        genkey : create Prive Key and Public Key"
 		strEditContacts   = "        editContacts : Edit your contact list."
 		strCustomEmoji    = "        editEmoji : Edit custom emoji list."
-		strEditRelay      = "        editRelays : edit relay list."
+		strEditRelay      = "        editRelays : Edit relay list."
 		strPubRelay       = "        pubRelays : Publish relay list."
 		strEditProfile    = "        editProfile : Edit your profile."
 		strPublishProfile = "        pubProfile : Publish your profile."
 		strPublishMessage = "        pubMessage <text message>: Publish message to relays."
-		strDispHome       = "        dispHome [number] [date time]: Display home timelines.\n                                       The default number is 20.\n                                       date time format : \"2023-07-24 17:49:51 JST\""
+		strDispHome       = "        dispHome [number] [date time]: Display home timeline.\n                                       The default number is 20.\n                                       date time format : \"2023-07-24 17:49:51 JST\""
 	)
 
 	fmt.Println(usage)
