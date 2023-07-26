@@ -445,14 +445,13 @@ dispHome {{{
 func dispHome(args []string) error {
 	num := 20
 	var ut int64 = 0
-	var err error
 	for i := range args {
 		if i<2 {
 			continue
 		}
 		switch i {
 		case 2:
-			num, err = strconv.Atoi(args[2])
+			tmpnum, err := strconv.Atoi(args[2])
 			if err!=nil {
 				layout := "2006-01-02 15:04:05 MST"
 				tp, err := time.Parse(layout, args[2])
@@ -461,17 +460,19 @@ func dispHome(args []string) error {
 				} else {
 					ut = tp.Unix()
 				}
+			} else {
+				num = tmpnum
 			}
 		case 3:
 			layout := "2006-01-02 15:04:05 MST"
-			tp, err := time.Parse(layout, args[3])
+			tptmp, err := time.Parse(layout, args[3])
 			if err!=nil {
 				num, err = strconv.Atoi(args[3])
 				if err!= nil {
 					return errors.New("An unknown argument was specified.")
 				}
 			} else {
-				ut = tp.Unix()
+				ut = tptmp.Unix()
 			}
 		}
 	}
