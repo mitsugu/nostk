@@ -660,6 +660,7 @@ func load(fn string) (string, error) {
 		return "", err
 	}
 	r := strings.ReplaceAll(string(b), "\n", "")
+	r = strings.ReplaceAll(r, "\t", "")
 	return r, nil
 }
 
