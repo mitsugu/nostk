@@ -2,7 +2,7 @@ module nostk
 
 go 1.20
 
-require github.com/nbd-wtf/go-nostr v0.19.3
+require github.com/nbd-wtf/go-nostr v0.19.5
 
 require (
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
