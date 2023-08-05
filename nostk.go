@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -641,7 +640,7 @@ func create(fn string, v any) error {
 		return err
 	}
 	path := filepath.Join(d, fn)
-	return ioutil.WriteFile(path, s, 0644)
+	return os.WriteFile(path, s, 0644)
 }
 
 // }}}
@@ -655,7 +654,7 @@ func load(fn string) (string, error) {
 		return "", err
 	}
 	path := filepath.Join(d, fn)
-	b, err := ioutil.ReadFile(path)
+	b, err := os.ReadFile(path)
 	if err != nil {
 		return "", err
 	}
@@ -671,7 +670,7 @@ save {{{
 */
 func save(dn string, fn string, value string) error {
 	path := filepath.Join(dn, fn)
-	return ioutil.WriteFile(path, []byte(value), 0644)
+	return os.WriteFile(path, []byte(value), 0644)
 }
 
 //}}}
