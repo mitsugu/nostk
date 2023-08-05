@@ -507,20 +507,28 @@ func dispHome(args []string) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	ch := pool.SubManyEose(ctx, rs, filters)
-	fmt.Println("{")
-	for event := range ch {
-		switch event.Kind {
-		case 1:
-			buf := event.Content
-			buf = strings.Replace(buf,"\\", "\\\\",-1)
-			buf = strings.Replace(buf,"\"", "\\\"",-1)
-			fmt.Printf("\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"},\n",event.ID,event.CreatedAt,event.PubKey,buf)
+	timer := time.NewTimer(time.Second*15)
+	defer timer.Stop()
+	go func() {
+		ch := pool.SubManyEose(ctx, rs, filters)
+		fmt.Println("{")
+		for event := range ch {
+			switch event.Kind {
+			case 1:
+				buf := event.Content
+				buf = strings.Replace(buf,"\\", "\\\\",-1)
+				buf = strings.Replace(buf,"\"", "\\\"",-1)
+				fmt.Printf("\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"},\n",event.ID,event.CreatedAt,event.PubKey,buf)
+			}
 		}
+		fmt.Println("}")
+		return
+	}()
+	select {
+	case <-timer.C:
+		fmt.Println("}")
+		return nil
 	}
-	fmt.Println("}")
-
-	return nil
 }
 
 // }}}
