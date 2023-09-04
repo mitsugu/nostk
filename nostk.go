@@ -126,7 +126,7 @@ func dispHelp() {
 		usage             = "Usage :\n  nostk <sub-command> [param...]"
 		subcommand        = "    sub-command :"
 		strInit           = "        init : Initializing the nostk environment"
-		genkey            = "        genkey : create Prive Key and Public Key"
+		genkey            = "        genkey : create Private Key and Public Key"
 		strEditContacts   = "        editContacts : Edit your contact list."
 		strCustomEmoji    = "        editEmoji : Edit custom emoji list."
 		strEditRelay      = "        editRelays : Edit relay list."
