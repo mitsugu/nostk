@@ -145,7 +145,6 @@ func dispHelp() {
 		strPublishProfile = "        pubProfile : Publish your profile."
 		strPublishMessage = "        pubMessage <text message>: Publish message to relays."
 		strCatHome        = "        catHome [number] [date time]: Display home timeline.\n                                      The default number is 20.\n                                      date time format : \"2023-07-24 17:49:51 JST\""
-		strDispHome		  = "        dispHome [number] [date time]: Alias of catHome sub-command."
 		strCatSelf        = "        catSelf [number] [date time]: Display your posts.\n                                      The default number is 20.\n                                      date time format : \"2023-07-24 17:49:51 JST\""
 	)
 
@@ -161,7 +160,6 @@ func dispHelp() {
 	fmt.Println(strPublishProfile)
 	fmt.Println(strPublishMessage)
 	fmt.Println(strCatHome)
-	fmt.Println(strDispHome)
 	fmt.Println(strCatSelf)
 }
 
