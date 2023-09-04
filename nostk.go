@@ -106,12 +106,12 @@ func main() {
 			os.Exit(1)
 		}
 	case "catHome":
-		if err := dispHome(os.Args); err != nil {
+		if err := catHome(os.Args); err != nil {
 			log.Fatal(err)
 			os.Exit(1)
 		}
 	case "dispHome":
-		if err := dispHome(os.Args); err != nil {
+		if err := catHome(os.Args); err != nil {
 			log.Fatal(err)
 			os.Exit(1)
 		}
@@ -453,9 +453,9 @@ func publishMessage(args []string) error {
 // }}}
 
 /*
-dispHome {{{
+catHome {{{
 */
-func dispHome(args []string) error {
+func catHome(args []string) error {
 	num := 20
 	var ut int64 = 0
 	for i := range args {
