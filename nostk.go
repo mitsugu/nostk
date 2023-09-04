@@ -560,7 +560,7 @@ func catSelf(args []string) error {
 		case 2:
 			tmpnum, err := strconv.Atoi(args[2])
 			if err!=nil {
-				layout := "2006-01-02 15:04:05 MST"
+				layout := "2006/01/02 15:04:05 MST"
 				tp, err := time.Parse(layout, args[2])
 				if err!= nil {
 					return errors.New("An unknown argument was specified.")
@@ -571,7 +571,7 @@ func catSelf(args []string) error {
 				num = tmpnum
 			}
 		case 3:
-			layout := "2006-01-02 15:04:05 MST"
+			layout := "2006/01/02 15:04:05 MST"
 			tptmp, err := time.Parse(layout, args[3])
 			if err!=nil {
 				num, err = strconv.Atoi(args[3])
