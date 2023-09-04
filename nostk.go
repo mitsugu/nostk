@@ -105,8 +105,18 @@ func main() {
 			log.Fatal(err)
 			os.Exit(1)
 		}
+	case "catHome":
+		if err := dispHome(os.Args); err != nil {
+			log.Fatal(err)
+			os.Exit(1)
+		}
 	case "dispHome":
 		if err := dispHome(os.Args); err != nil {
+			log.Fatal(err)
+			os.Exit(1)
+		}
+	case "catSelf":
+		if err := catSelf(os.Args); err != nil {
 			log.Fatal(err)
 			os.Exit(1)
 		}
@@ -134,7 +144,9 @@ func dispHelp() {
 		strEditProfile    = "        editProfile : Edit your profile."
 		strPublishProfile = "        pubProfile : Publish your profile."
 		strPublishMessage = "        pubMessage <text message>: Publish message to relays."
-		strDispHome       = "        dispHome [number] [date time]: Display home timeline.\n                                       The default number is 20.\n                                       date time format : \"2023-07-24 17:49:51 JST\""
+		strCatHome        = "        catHome [number] [date time]: Display home timeline.\n                                      The default number is 20.\n                                      date time format : \"2023-07-24 17:49:51 JST\""
+		strDispHome		  = "        dispHome [number] [date time]: Alias of catHome sub-command."
+		strCatSelf        = "        catSelf [number] [date time]: Display your posts.\n                                      The default number is 20.\n                                      date time format : \"2023-07-24 17:49:51 JST\""
 	)
 
 	fmt.Println(usage)
@@ -148,7 +160,9 @@ func dispHelp() {
 	fmt.Println(strEditProfile)
 	fmt.Println(strPublishProfile)
 	fmt.Println(strPublishMessage)
+	fmt.Println(strCatHome)
 	fmt.Println(strDispHome)
+	fmt.Println(strCatSelf)
 }
 
 // }}}
@@ -534,6 +548,101 @@ func dispHome(args []string) error {
 // }}}
 
 /*
+catSelf {{{
+*/
+func catSelf(args []string) error {
+	num := 20
+	var ut int64 = 0
+	for i := range args {
+		if i<2 {
+			continue
+		}
+		switch i {
+		case 2:
+			tmpnum, err := strconv.Atoi(args[2])
+			if err!=nil {
+				layout := "2006-01-02 15:04:05 MST"
+				tp, err := time.Parse(layout, args[2])
+				if err!= nil {
+					return errors.New("An unknown argument was specified.")
+				} else {
+					ut = tp.Unix()
+				}
+			} else {
+				num = tmpnum
+			}
+		case 3:
+			layout := "2006-01-02 15:04:05 MST"
+			tptmp, err := time.Parse(layout, args[3])
+			if err!=nil {
+				num, err = strconv.Atoi(args[3])
+				if err!= nil {
+					return errors.New("An unknown argument was specified.")
+				}
+			} else {
+				ut = tptmp.Unix()
+			}
+		}
+	}
+
+	var rs []string
+	if err:=getRelayList(&rs);err!=nil {
+		return err
+	}
+	var npub []string
+	if err:=getMySelfPubkey(&npub);err!=nil {
+		return err
+	}
+
+	var filters []nostr.Filter
+	if ut > 0 {
+		ts := nostr.Timestamp(ut)
+		filters = []nostr.Filter{{
+			Kinds:   []int{nostr.KindTextNote},
+			Authors: npub,
+			Until : &ts,
+			Limit:   num,
+		}}
+	} else {
+		filters = []nostr.Filter{{
+			Kinds:   []int{nostr.KindTextNote},
+			Authors: npub,
+			Limit:   num,
+		}}
+	}
+
+	ctx := context.Background()
+	pool := nostr.NewSimplePool(ctx)
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	timer := time.NewTimer(time.Second*15)
+	defer timer.Stop()
+	go func() {
+		ch := pool.SubManyEose(ctx, rs, filters)
+		fmt.Println("{")
+		for event := range ch {
+			switch event.Kind {
+			case 1:
+				buf := event.Content
+				buf = strings.Replace(buf,"\\", "\\\\",-1)
+				buf = strings.Replace(buf,"\"", "\\\"",-1)
+				fmt.Printf("\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"},\n",event.ID,event.CreatedAt,event.PubKey,buf)
+			}
+		}
+		fmt.Println("}")
+		return
+	}()
+	select {
+	case <-timer.C:
+		fmt.Println("}")
+		return nil
+	}
+}
+
+// }}}
+
+/*
 getDir {{{
 */
 func getDir() (string, error) {
@@ -588,6 +697,20 @@ func getContactList(cl *[]string) error {
 	for i := range c {
 		*cl = append(*cl, i)
 	}
+	return nil
+}
+
+// }}}
+
+/*
+getMySelfPubkey {{{
+*/
+func getMySelfPubkey(cl *[]string) error {
+	b, err := load(hpub)
+	if err != nil {
+		return err
+	}
+	*cl = append(*cl, b)
 	return nil
 }
 
