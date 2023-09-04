@@ -530,6 +530,7 @@ func catHome(args []string) error {
 				buf := event.Content
 				buf = strings.Replace(buf,"\\", "\\\\",-1)
 				buf = strings.Replace(buf,"\"", "\\\"",-1)
+				buf = strings.Replace(buf,"\r", "",-1)
 				fmt.Printf("\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"},\n",event.ID,event.CreatedAt,event.PubKey,buf)
 			}
 		}
