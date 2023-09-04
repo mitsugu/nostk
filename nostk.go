@@ -144,8 +144,8 @@ func dispHelp() {
 		strEditProfile    = "        editProfile : Edit your profile."
 		strPublishProfile = "        pubProfile : Publish your profile."
 		strPublishMessage = "        pubMessage <text message>: Publish message to relays."
-		strCatHome        = "        catHome [number] [date time]: Display home timeline.\n                                      The default number is 20.\n                                      date time format : \"2023-07-24 17:49:51 JST\""
-		strCatSelf        = "        catSelf [number] [date time]: Display your posts.\n                                      The default number is 20.\n                                      date time format : \"2023-07-24 17:49:51 JST\""
+		strCatHome        = "        catHome [number] [date time]: Display home timeline.\n                                      The default number is 20.\n                                      date time format : \"2023/07/24 17:49:51 JST\""
+		strCatSelf        = "        catSelf [number] [date time]: Display your posts.\n                                      The default number is 20.\n                                      date time format : \"2023/07/24 17:49:51 JST\""
 	)
 
 	fmt.Println(usage)
@@ -464,7 +464,7 @@ func catHome(args []string) error {
 		case 2:
 			tmpnum, err := strconv.Atoi(args[2])
 			if err!=nil {
-				layout := "2006-01-02 15:04:05 MST"
+				layout := "2006/01/02 15:04:05 MST"
 				tp, err := time.Parse(layout, args[2])
 				if err!= nil {
 					return errors.New("An unknown argument was specified.")
@@ -475,7 +475,7 @@ func catHome(args []string) error {
 				num = tmpnum
 			}
 		case 3:
-			layout := "2006-01-02 15:04:05 MST"
+			layout := "2006/01/02 15:04:05 MST"
 			tptmp, err := time.Parse(layout, args[3])
 			if err!=nil {
 				num, err = strconv.Atoi(args[3])
@@ -859,3 +859,18 @@ func readStdIn() (string, error) {
 }
 
 // }}}
+
+/*
+debugPrint {{{
+*/
+func startDebug() {
+	f,err := os.OpenFile("/home/mitsugu/Downloads/error.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600 )
+	if(err!=nil) {
+		panic( err )
+	}
+	log.SetOutput(f)
+	log.Println("start debug")
+}
+
+// }}}
+
