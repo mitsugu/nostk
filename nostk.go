@@ -629,7 +629,7 @@ func catSelf(args []string) error {
 				fmt.Printf("\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"},\n",event.ID,event.CreatedAt,event.PubKey,buf)
 			}
 		}
-		fmt.Println("}")
+		//fmt.Println("}")
 		return
 	}()
 	select {
