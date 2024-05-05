@@ -714,6 +714,10 @@ func emojiReaction(args []string) error {
 	t = append(t, "p")
 	t = append(t, public_key)
 	tgs = append(tgs, t)
+	t = nil
+	t = append(t, "k")
+	t = append(t, "1")
+	tgs = append(tgs, t)
 
 	ev := nostr.Event{
 		PubKey:    pk,
