@@ -652,7 +652,7 @@ func catSelf(args []string) error {
 // }}}
 
 /*
-removeEvent
+removeEvent {{{
 	[infomation for develop]
 	usage:
 		nostk removeEvent <event_id>
@@ -736,6 +736,7 @@ func removeEvent(args []string) error {
 
 	return nil
 }
+// }}}
 
 /*
 emojiRreaction {{{
