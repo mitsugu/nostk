@@ -169,8 +169,8 @@ func dispHelp() {
 	fmt.Println(strEditProfile)
 	fmt.Println(strPublishProfile)
 	fmt.Println(strPublishMessage)
-	fmt.Println(strCatHome)
-	fmt.Println(strCatSelf)
+	//fmt.Println(strCatHome)
+	//fmt.Println(strCatSelf)
 }
 
 // }}}
