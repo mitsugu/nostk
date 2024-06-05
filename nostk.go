@@ -870,9 +870,9 @@ func emojiReaction(args []string) error {
 getDir {{{
 */
 func getDir() (string, error) {
-	home := os.Getenv("HOME")
-	if home == "" {
-		return "", errors.New("Not set HOME environment variables")
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
 	}
 	home = filepath.Join(home, secretDir)
 	if _, err := os.Stat(home); err != nil {
