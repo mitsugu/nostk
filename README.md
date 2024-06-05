@@ -4,7 +4,7 @@ Implementing a CLI client to use [Nostr Protocol](https://github.com/nostr-proto
 
 ### Environment
 * Ubuntu 23.04 and later
-* Go Language 1.20.5 and later
+* Go Language 1.22.4 and later
 
 ### Features
 * Initializing the nostk environment
@@ -16,6 +16,7 @@ Implementing a CLI client to use [Nostr Protocol](https://github.com/nostr-proto
 * Edit profile
 * Publish profile
 * Display home timeline
+* Display your's note (kind 1)
 
 ### ToDo
 * Mention to any user
@@ -30,7 +31,17 @@ Implementing a CLI client to use [Nostr Protocol](https://github.com/nostr-proto
 * Setting $EDITOR environment variable
 
 ### Install nostk:
+#### Windows Command Prompt
+```command.com
+SETX EDITOR=<editor's full path name>
+go install github.com/nbd-wtf/go-nostr@v0.32.0
+go install github.com/mitsugu/nostk@latest
+```
+
+#### Ubuntu and maybe other distribution
+For bash  
 ```bash
+echo 'export EDITOR=vim' >> ~/.bashrc
 go install github.com/nbd-wtf/go-nostr@v0.32.0
 go install github.com/mitsugu/nostk@latest
 ```

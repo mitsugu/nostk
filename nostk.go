@@ -947,7 +947,7 @@ func setCustomEmoji(s string, tgs *nostr.Tags) error {
 	*tgs = nil
 	ts := make(map[string]string)
 	if err := getCustomEmoji(&ts); err != nil {
-		return err
+		return nil
 	}
 	var t []string
 	for i := range ts {
