@@ -31,6 +31,7 @@ Implementing a CLI client to use [Nostr Protocol](https://github.com/nostr-proto
 
 ### Install nostk:
 ```bash
+go install github.com/nbd-wtf/go-nostr@v0.32.0
 go install github.com/mitsugu/nostk@latest
 ```
 
