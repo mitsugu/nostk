@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 	"strconv"
+	"sort"
 
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
@@ -50,6 +51,16 @@ type RwFlag struct {
 type CONTACT struct {
 	Url	 string	`json:"url"`
 	Name string	`json:"name"`
+}
+
+type CONTENTS struct {
+	Date    string `json:"date"`
+	PubKey  string `json:"pubkey"`
+	Content string `json:"content"`
+}
+type NOSTRLOG struct {
+	Id       string
+	Contents CONTENTS
 }
 
 /*
@@ -557,11 +568,13 @@ func catHome(args []string) error {
 // }}}
 
 /*
-catSelf {{{
+catSelf {{
 */
 func catSelf(args []string) error {
+	startDebug()
 	num := 20
 	var ut int64 = 0
+	var wb []NOSTRLOG
 	for i := range args {
 		if i<2 {
 			continue
@@ -629,27 +642,39 @@ func catSelf(args []string) error {
 	defer timer.Stop()
 	go func() {
 		ch := pool.SubManyEose(ctx, rs, filters)
-		fmt.Println("{")
 		for event := range ch {
 			switch event.Kind {
 			case 1:
 				buf := event.Content
 				buf = strings.Replace(buf,"\\", "\\\\",-1)
 				buf = strings.Replace(buf,"\"", "\\\"",-1)
-				fmt.Printf("\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"},\n",event.ID,event.CreatedAt,event.PubKey,buf)
+				var Contents CONTENTS
+				Contents.Date = fmt.Sprintf("%v", event.CreatedAt)
+				Contents.PubKey = event.PubKey
+				Contents.Content = buf
+				tmp := NOSTRLOG{event.ID, Contents}
+				wb = append(wb, tmp)
 			}
 		}
-		//fmt.Println("}")
 		return
 	}()
 	select {
 	case <-timer.C:
+		sort.Slice(wb, func(i, j int) bool {
+		    return wb[i].Contents.Date > wb[j].Contents.Date
+		})
+		fmt.Println("{")
+		for i := range wb {
+			fmt.Printf(
+				"\t\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"},\n",
+				wb[i].Id , wb[i].Contents.Date, wb[i].Contents.PubKey, wb[i].Contents.Content )
+		}
 		fmt.Println("}")
 		return nil
 	}
 }
 
-// }}}
+// }}
 
 /*
 removeEvent {{{
