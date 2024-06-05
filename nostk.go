@@ -298,7 +298,7 @@ func publishProfile() error {
 	ev := nostr.Event{
 		PubKey:    pk,
 		CreatedAt: nostr.Now(),
-		Kind:      nostr.KindSetMetadata,
+		Kind:      nostr.KindProfileMetadata,
 		Tags:      nil,
 		Content:   string(pr),
 	}
@@ -314,7 +314,7 @@ func publishProfile() error {
 			fmt.Println(err)
 			continue
 		}
-		_, err = relay.Publish(ctx, ev)
+		err = relay.Publish(ctx, ev)
 		if err != nil {
 			fmt.Println(err)
 			continue
@@ -390,7 +390,7 @@ func publishRelayList() error {
 			fmt.Println(err)
 			continue
 		}
-		_, err = relay.Publish(ctx, ev)
+		err = relay.Publish(ctx, ev)
 		if err != nil {
 			fmt.Println(err)
 			continue
@@ -458,7 +458,7 @@ func publishMessage(args []string) error {
 			fmt.Println(err)
 			continue
 		}
-		_, err = relay.Publish(ctx, ev)
+		err = relay.Publish(ctx, ev)
 		if err != nil {
 			fmt.Println(err)
 			continue
@@ -750,7 +750,7 @@ func removeEvent(args []string) error {
 			fmt.Println(err)
 			continue
 		}
-		_, err = relay.Publish(ctx, ev)
+		err = relay.Publish(ctx, ev)
 		if err != nil {
 			fmt.Println(err)
 			continue
@@ -854,7 +854,7 @@ func emojiReaction(args []string) error {
 			fmt.Println(err)
 			continue
 		}
-		_, err = relay.Publish(ctx, ev)
+		err = relay.Publish(ctx, ev)
 		if err != nil {
 			fmt.Println(err)
 			continue
