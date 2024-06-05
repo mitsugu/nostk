@@ -568,10 +568,9 @@ func catHome(args []string) error {
 // }}}
 
 /*
-catSelf {{
+catSelf {{{
 */
 func catSelf(args []string) error {
-	startDebug()
 	num := 20
 	var ut int64 = 0
 	var wb []NOSTRLOG
@@ -674,7 +673,7 @@ func catSelf(args []string) error {
 	}
 }
 
-// }}
+// }}}
 
 /*
 removeEvent {{{
