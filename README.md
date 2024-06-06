@@ -2,7 +2,7 @@ nostk
 ========
 Implementing a CLI client to use [Nostr Protocol](https://github.com/nostr-protocol/nostr).
 
-### Environment
+### Develop Environment
 * Ubuntu 23.04 and later
 * Go Language 1.22.4 and later
 
@@ -15,36 +15,53 @@ Implementing a CLI client to use [Nostr Protocol](https://github.com/nostr-proto
 * Publish relay list
 * Edit profile
 * Publish profile
-* Display home timeline
+* Display home timeline (kind 1)
 * Display your's note (kind 1)
 
 ### ToDo
 * Mention to any user
 * Publishing a message with message citations
+* Support for content-warning tag
 * Log viewer
 * any more
 
 ### Requirements
 * [nbd-wtf / go-nostr](https://github.com/nbd-wtf/go-nostr)
 * Some kind of text editor
-* Setting $HOME environment variable
 * Setting $EDITOR environment variable
 
-### Install nostk:
-#### Windows Command Prompt
+### Setup
+#### Install tools
+1. Install [git](https://www.git-scm.com/)
+2. Install [golang](https://go.dev/)
+
+#### Install nostk:
+##### Windows
 ```command.com
-SETX EDITOR=<editor's full path name>
+SETX EDITOR=<Text editor's full path name>
 go install github.com/nbd-wtf/go-nostr@v0.32.0
 go install github.com/mitsugu/nostk@latest
 ```
 
-#### Ubuntu and maybe other distribution
+##### Ubuntu and maybe other distribution
 For bash  
 ```bash
 echo 'export EDITOR=vim' >> ~/.bashrc
 go install github.com/nbd-wtf/go-nostr@v0.32.0
 go install github.com/mitsugu/nostk@latest
 ```
+
+#### Setting nostk:
+1. nostk init (must)
+2. nostk genkey (must)
+3. nostk editRelays (must)
+4. nostk editContacts (must)
+5. nostk editProfile (should \*)
+6. nostk pubProfile (should \*)
+7. nostk editEmoji (Optional)
+8. nostk pubRelays (Optional)
+
+\* Unless there is a special reason, it is recommended to use a web app such as nostter instead of nostk.  
 
 ### Usage
 #### Display help documanets
@@ -107,8 +124,12 @@ nostk pubMessage < (ps)
 (ps) | nostk pubMessage
 ```
 
-#### Display home timeline
+#### Display home timeline (kind 1)
 ``` bash
-nostk dispHome [number] [date_time]
+nostk catHome [number] [date_time]
 ```
 
+#### Display your's note (kind 1)
+``` bash
+nostk catSelf [number] [date_time]
+```
