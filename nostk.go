@@ -68,7 +68,7 @@ type NOSTRLOG struct {
 main {{{
 */
 func main() {
-	startDebug()
+	//startDebug("/home/mitsugu/Downloads/error.log")
 	if len(os.Args) < 2 {
 		dispHelp()
 		os.Exit(0)
@@ -927,6 +927,7 @@ func getContactList(cl *[]string) error {
 	if err := json.Unmarshal(data, &c); err != nil {
 		return err
 	}
+
 	for i := range c {
 		*cl = append(*cl, i)
 	}
@@ -1098,8 +1099,8 @@ func readStdIn() (string, error) {
 /*
 debugPrint {{{
 */
-func startDebug() {
-	f, err := os.OpenFile("/home/mitsugu/Downloads/error.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+func startDebug(s string) {
+	f, err := os.OpenFile(s, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		panic(err)
 	}
