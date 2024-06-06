@@ -15,8 +15,8 @@ Implementing a CLI client to use [Nostr Protocol](https://github.com/nostr-proto
 * Publish relay list
 * Edit profile
 * Publish profile
-* Display home timeline (kind 1)
-* Display your's note (kind 1)
+* Display home timeline ([kind 1](https://github.com/nostr-protocol/nips/blob/master/01.md#kinds))
+* Display your's note ([kind 1](https://github.com/nostr-protocol/nips/blob/master/01.md#kinds))
 
 ### ToDo
 * Mention to any user
@@ -61,7 +61,7 @@ go install github.com/mitsugu/nostk@latest
 7. nostk editEmoji (Optional)
 8. nostk pubRelays (Optional)
 
-\* Unless there is a special reason, it is recommended to use a web app such as nostter instead of nostk.  
+\* Unless there is a special reason, it is recommended to use a web app such as [nostter](https://nostter.app/home) instead of nostk.  
 
 ### Usage
 #### Display help documanets
@@ -126,10 +126,10 @@ nostk pubMessage < (ps)
 
 #### Display home timeline (kind 1)
 ``` bash
-nostk catHome [number] [date_time]
+nostk catHome [number]
 ```
 
 #### Display your's note (kind 1)
 ``` bash
-nostk catSelf [number] [date_time]
+nostk catSelf [number]
 ```
