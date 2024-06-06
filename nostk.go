@@ -11,10 +11,10 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
+	"strconv"
 	"strings"
 	"time"
-	"strconv"
-	"sort"
 
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
@@ -49,8 +49,8 @@ type RwFlag struct {
 }
 
 type CONTACT struct {
-	Url	 string	`json:"url"`
-	Name string	`json:"name"`
+	Url  string `json:"url"`
+	Name string `json:"name"`
 }
 
 type CONTENTS struct {
@@ -409,7 +409,7 @@ publishMessage {{{
 func publishMessage(args []string) error {
 	var s string
 	var err error
-	if len(args)<3 {
+	if len(args) < 3 {
 		s, err = readStdIn()
 		if err != nil {
 			return errors.New("Not set text message")
@@ -478,16 +478,16 @@ func catHome(args []string) error {
 	num := 20
 	var ut int64 = 0
 	for i := range args {
-		if i<2 {
+		if i < 2 {
 			continue
 		}
 		switch i {
 		case 2:
 			tmpnum, err := strconv.Atoi(args[2])
-			if err!=nil {
+			if err != nil {
 				layout := "2006/01/02 15:04:05 MST"
 				tp, err := time.Parse(layout, args[2])
-				if err!= nil {
+				if err != nil {
 					return errors.New("An unknown argument was specified.")
 				} else {
 					ut = tp.Unix()
@@ -498,9 +498,9 @@ func catHome(args []string) error {
 		case 3:
 			layout := "2006/01/02 15:04:05 MST"
 			tptmp, err := time.Parse(layout, args[3])
-			if err!=nil {
+			if err != nil {
 				num, err = strconv.Atoi(args[3])
-				if err!= nil {
+				if err != nil {
 					return errors.New("An unknown argument was specified.")
 				}
 			} else {
@@ -510,11 +510,11 @@ func catHome(args []string) error {
 	}
 
 	var rs []string
-	if err:=getRelayList(&rs);err!=nil {
+	if err := getRelayList(&rs); err != nil {
 		return err
 	}
 	var npub []string
-	if err:=getContactList(&npub);err!=nil {
+	if err := getContactList(&npub); err != nil {
 		return err
 	}
 
@@ -524,7 +524,7 @@ func catHome(args []string) error {
 		filters = []nostr.Filter{{
 			Kinds:   []int{nostr.KindTextNote},
 			Authors: npub,
-			Until : &ts,
+			Until:   &ts,
 			Limit:   num,
 		}}
 	} else {
@@ -540,7 +540,7 @@ func catHome(args []string) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	timer := time.NewTimer(time.Second*15)
+	timer := time.NewTimer(time.Second * 15)
 	defer timer.Stop()
 	go func() {
 		ch := pool.SubManyEose(ctx, rs, filters)
@@ -549,10 +549,10 @@ func catHome(args []string) error {
 			switch event.Kind {
 			case 1:
 				buf := event.Content
-				buf = strings.Replace(buf,"\\", "\\\\",-1)
-				buf = strings.Replace(buf,"\"", "\\\"",-1)
-				buf = strings.Replace(buf,"\r", "",-1)
-				fmt.Printf("\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"},\n",event.ID,event.CreatedAt,event.PubKey,buf)
+				buf = strings.Replace(buf, "\\", "\\\\", -1)
+				buf = strings.Replace(buf, "\"", "\\\"", -1)
+				buf = strings.Replace(buf, "\r", "", -1)
+				fmt.Printf("\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"},\n", event.ID, event.CreatedAt, event.PubKey, buf)
 			}
 		}
 		fmt.Println("}")
@@ -575,16 +575,16 @@ func catSelf(args []string) error {
 	var ut int64 = 0
 	var wb []NOSTRLOG
 	for i := range args {
-		if i<2 {
+		if i < 2 {
 			continue
 		}
 		switch i {
 		case 2:
 			tmpnum, err := strconv.Atoi(args[2])
-			if err!=nil {
+			if err != nil {
 				layout := "2006/01/02 15:04:05 MST"
 				tp, err := time.Parse(layout, args[2])
-				if err!= nil {
+				if err != nil {
 					return errors.New("An unknown argument was specified.")
 				} else {
 					ut = tp.Unix()
@@ -595,9 +595,9 @@ func catSelf(args []string) error {
 		case 3:
 			layout := "2006/01/02 15:04:05 MST"
 			tptmp, err := time.Parse(layout, args[3])
-			if err!=nil {
+			if err != nil {
 				num, err = strconv.Atoi(args[3])
-				if err!= nil {
+				if err != nil {
 					return errors.New("An unknown argument was specified.")
 				}
 			} else {
@@ -607,11 +607,11 @@ func catSelf(args []string) error {
 	}
 
 	var rs []string
-	if err:=getRelayList(&rs);err!=nil {
+	if err := getRelayList(&rs); err != nil {
 		return err
 	}
 	var npub []string
-	if err:=getMySelfPubkey(&npub);err!=nil {
+	if err := getMySelfPubkey(&npub); err != nil {
 		return err
 	}
 
@@ -621,7 +621,7 @@ func catSelf(args []string) error {
 		filters = []nostr.Filter{{
 			Kinds:   []int{nostr.KindTextNote},
 			Authors: npub,
-			Until : &ts,
+			Until:   &ts,
 			Limit:   num,
 		}}
 	} else {
@@ -637,7 +637,7 @@ func catSelf(args []string) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	timer := time.NewTimer(time.Second*15)
+	timer := time.NewTimer(time.Second * 15)
 	defer timer.Stop()
 	go func() {
 		ch := pool.SubManyEose(ctx, rs, filters)
@@ -645,8 +645,8 @@ func catSelf(args []string) error {
 			switch event.Kind {
 			case 1:
 				buf := event.Content
-				buf = strings.Replace(buf,"\\", "\\\\",-1)
-				buf = strings.Replace(buf,"\"", "\\\"",-1)
+				buf = strings.Replace(buf, "\\", "\\\\", -1)
+				buf = strings.Replace(buf, "\"", "\\\"", -1)
 				var Contents CONTENTS
 				Contents.Date = fmt.Sprintf("%v", event.CreatedAt)
 				Contents.PubKey = event.PubKey
@@ -660,13 +660,13 @@ func catSelf(args []string) error {
 	select {
 	case <-timer.C:
 		sort.Slice(wb, func(i, j int) bool {
-		    return wb[i].Contents.Date > wb[j].Contents.Date
+			return wb[i].Contents.Date > wb[j].Contents.Date
 		})
 		fmt.Println("{")
 		for i := range wb {
 			fmt.Printf(
 				"\t\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"},\n",
-				wb[i].Id , wb[i].Contents.Date, wb[i].Contents.PubKey, wb[i].Contents.Content )
+				wb[i].Id, wb[i].Contents.Date, wb[i].Contents.PubKey, wb[i].Contents.Content)
 		}
 		fmt.Println("}")
 		return nil
@@ -676,25 +676,25 @@ func catSelf(args []string) error {
 // }}}
 
 /*
-removeEvent {{{
-	[infomation for develop]
-	usage:
-		nostk removeEvent <event_id>
-	kind: 5
-	content: reason text (must)
-	tags [
-		"e": event id (hex)
-	]
+	removeEvent {{{
+		[infomation for develop]
+		usage:
+			nostk removeEvent <event_id>
+		kind: 5
+		content: reason text (must)
+		tags [
+			"e": event id (hex)
+		]
 */
 func removeEvent(args []string) error {
 	var event_id string
-	content :=""
+	content := ""
 
-	if len(args)<3 || 4<len(args) {
+	if len(args) < 3 || 4 < len(args) {
 		return errors.New("Wrong number of parameters")
 	}
 	for i := range args {
-		if i<2 {
+		if i < 2 {
 			continue
 		}
 		switch i {
@@ -760,35 +760,36 @@ func removeEvent(args []string) error {
 
 	return nil
 }
+
 // }}}
 
 /*
-emojiRreaction {{{
-	[infomation for develop]
-	usage:
-		nostk emojiReaction <event_id> <public_key> <content>
-			note:
-				event_id: hex
-				public_key: hex
+	emojiRreaction {{{
+		[infomation for develop]
+		usage:
+			nostk emojiReaction <event_id> <public_key> <content>
+				note:
+					event_id: hex
+					public_key: hex
 
-	kind: 7
-	content: emoji (include custom emoji short code)
-	tags [
-		"e": event id (hex)
-		"p": pubkey (hex)
-		"emoji": short_code, image_url (optional)
-	]
+		kind: 7
+		content: emoji (include custom emoji short code)
+		tags [
+			"e": event id (hex)
+			"p": pubkey (hex)
+			"emoji": short_code, image_url (optional)
+		]
 */
 func emojiReaction(args []string) error {
 	var event_id string
 	var public_key string
 	var content string
 
-	if(len(args)<5){
+	if len(args) < 5 {
 		return errors.New("Wrong number of parameters")
 	}
 	for i := range args {
-		if i<2 {
+		if i < 2 {
 			continue
 		}
 		switch i {
@@ -864,6 +865,7 @@ func emojiReaction(args []string) error {
 
 	return nil
 }
+
 // }}}
 
 /*
@@ -915,7 +917,7 @@ func getContactList(cl *[]string) error {
 	if err != nil {
 		return err
 	}
-	if err := json.Unmarshal([]byte(b), &c);err!=nil {
+	if err := json.Unmarshal([]byte(b), &c); err != nil {
 		return err
 	}
 	for i := range c {
@@ -1089,13 +1091,12 @@ func readStdIn() (string, error) {
 debugPrint {{{
 */
 func startDebug() {
-	f,err := os.OpenFile("/home/mitsugu/Downloads/error.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600 )
-	if(err!=nil) {
-		panic( err )
+	f, err := os.OpenFile("/home/mitsugu/Downloads/error.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		panic(err)
 	}
 	log.SetOutput(f)
 	log.Println("start debug")
 }
 
 // }}}
-
