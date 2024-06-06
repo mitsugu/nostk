@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/muhammadmuzzammil1998/jsonc"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
 )
@@ -67,6 +68,7 @@ type NOSTRLOG struct {
 main {{{
 */
 func main() {
+	startDebug()
 	if len(os.Args) < 2 {
 		dispHelp()
 		os.Exit(0)
@@ -896,10 +898,12 @@ func getRelayList(rl *[]string) error {
 	if err != nil {
 		return err
 	}
+
 	err = json.Unmarshal([]byte(b), &p)
 	if err != nil {
 		return err
 	}
+
 	for i := range p {
 		*rl = append(*rl, i)
 	}
@@ -917,7 +921,10 @@ func getContactList(cl *[]string) error {
 	if err != nil {
 		return err
 	}
-	if err := json.Unmarshal([]byte(b), &c); err != nil {
+
+	data := jsonc.ToJSON([]byte(b))
+
+	if err := json.Unmarshal(data, &c); err != nil {
 		return err
 	}
 	for i := range c {
@@ -974,6 +981,7 @@ func getCustomEmoji(ts *map[string]string) error {
 	if err != nil {
 		return err
 	}
+
 	err = json.Unmarshal([]byte(b), ts)
 	if err != nil {
 		return err
