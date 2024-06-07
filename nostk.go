@@ -16,9 +16,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/muhammadmuzzammil1998/jsonc"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
+	"github.com/yosuke-furukawa/json5/encoding/json5"
 )
 
 const (
@@ -917,14 +917,29 @@ getContactList {{{
 */
 func getContactList(cl *[]string) error {
 	c := make(map[string]CONTACT)
-	b, err := load(contacts)
+	/*
+		b, err := load(contacts)
+		if err != nil {
+			return err
+		}
+	*/
+	f, err := openJSON5(contacts)
 	if err != nil {
 		return err
 	}
 
-	data := jsonc.ToJSON([]byte(b))
+	var data interface{}
+	dec := json5.NewDecoder(f)
+	err = dec.Decode(&data)
+	if err != nil {
+		return err
+	}
+	b, err := json5.Marshal(data)
+	if err != nil {
+		return err
+	}
 
-	if err := json.Unmarshal(data, &c); err != nil {
+	if err := json5.Unmarshal([]byte(b), &c); err != nil {
 		return err
 	}
 
@@ -1007,6 +1022,24 @@ func create(fn string, v any) error {
 	}
 	path := filepath.Join(d, fn)
 	return os.WriteFile(path, s, 0644)
+}
+
+// }}}
+
+/*
+openJSON5 {{{
+*/
+func openJSON5(fn string) (*os.File, error) {
+	d, err := getDir()
+	if err != nil {
+		return nil, err
+	}
+	path := filepath.Join(d, fn)
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	return file, nil
 }
 
 // }}}

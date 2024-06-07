@@ -3,8 +3,8 @@ module github.com/mitsugu/nostk
 go 1.22.2
 
 require (
-	github.com/muhammadmuzzammil1998/jsonc v1.0.0
 	github.com/nbd-wtf/go-nostr v0.32.0
+	github.com/yosuke-furukawa/json5 v0.1.1
 )
 
 require (
