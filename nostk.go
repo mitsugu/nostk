@@ -927,6 +927,7 @@ func getContactList(cl *[]string) error {
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 
 	var data interface{}
 	dec := json5.NewDecoder(f)
