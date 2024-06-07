@@ -21,6 +21,7 @@ import (
 	"github.com/yosuke-furukawa/json5/encoding/json5"
 )
 
+// type declaration {{{
 const (
 	secretDir = ".nostk"
 	hsec      = ".hsec"
@@ -63,12 +64,13 @@ type NOSTRLOG struct {
 	Id       string
 	Contents CONTENTS
 }
+// }}}
 
 /*
 main {{{
 */
 func main() {
-	//startDebug("/home/mitsugu/Downloads/error.log")
+	//startDebug("/home/mitsugu/Develop/repo/Nostr/nostk/error.log")
 	if len(os.Args) < 2 {
 		dispHelp()
 		os.Exit(0)
@@ -893,18 +895,30 @@ func getDir() (string, error) {
 getRelayList {{{
 */
 func getRelayList(rl *[]string) error {
-	p := make(map[string]RwFlag)
-	b, err := load(relays)
+	c := make(map[string]RwFlag)
+	f, err := openJSON5(relays)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	var data interface{}
+	dec := json5.NewDecoder(f)
+	err = dec.Decode(&data)
 	if err != nil {
 		return err
 	}
 
-	err = json.Unmarshal([]byte(b), &p)
+	b, err := json5.Marshal(data)
 	if err != nil {
 		return err
 	}
 
-	for i := range p {
+	if err := json5.Unmarshal([]byte(b), &c); err != nil {
+		return err
+	}
+
+	for i := range c {
 		*rl = append(*rl, i)
 	}
 	return nil
@@ -917,12 +931,6 @@ getContactList {{{
 */
 func getContactList(cl *[]string) error {
 	c := make(map[string]CONTACT)
-	/*
-		b, err := load(contacts)
-		if err != nil {
-			return err
-		}
-	*/
 	f, err := openJSON5(contacts)
 	if err != nil {
 		return err
