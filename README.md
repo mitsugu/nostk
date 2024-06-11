@@ -19,9 +19,9 @@ Implementing a CLI client to use [Nostr Protocol](https://github.com/nostr-proto
 * Display your's note ([kind 1](https://github.com/nostr-protocol/nips/blob/master/01.md#kinds))
 
 ### ToDo
+* Support content warning
 * Mention to any user
 * Publishing a message with message citations
-* Support for content-warning tag
 * Log viewer
 * any more
 
@@ -39,15 +39,13 @@ Implementing a CLI client to use [Nostr Protocol](https://github.com/nostr-proto
 ##### Windows
 ```command.com
 SETX EDITOR=<Text editor's full path name>
-go install github.com/nbd-wtf/go-nostr@v0.32.0
 go install github.com/mitsugu/nostk@latest
 ```
 
 ##### Ubuntu and maybe other distribution
-For bash  
+For bash
 ```bash
 echo 'export EDITOR=vim' >> ~/.bashrc
-go install github.com/nbd-wtf/go-nostr@v0.32.0
 go install github.com/mitsugu/nostk@latest
 ```
 
@@ -61,7 +59,7 @@ go install github.com/mitsugu/nostk@latest
 7. nostk editEmoji (Optional)
 8. nostk pubRelays (Optional)
 
-\* Unless there is a special reason, it is recommended to use a web app such as [nostter](https://nostter.app/home) instead of nostk.  
+\* Unless there is a special reason, it is recommended to use a web app such as [nostter](https://nostter.app/home) instead of nostk.
 
 ### Usage
 #### Display help documanets
@@ -133,3 +131,20 @@ nostk catHome [number]
 ``` bash
 nostk catSelf [number]
 ```
+
+#### Display specified event
+``` bash
+nostk catEvent <Hex event id>
+```
+
+#### Remove specified event (Test implementation)
+``` bash
+nostk removeEvent <Hex event id> [reason]
+```
+
+#### Custom emoji reaction (Test implementation)
+``` bash
+nostk emojiReaction <Hex event id> <Hex pubkey> <short code of custom emoji>
+```
+
+
