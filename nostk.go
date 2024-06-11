@@ -168,39 +168,45 @@ func main() {
 dispHelp {{{
 */
 func dispHelp() {
-	const (
-		usage             = "Usage :\n  nostk <sub-command> [param...]"
-		subcommand        = "    sub-command :"
-		strInit           = "        init : Initializing the nostk environment"
-		genkey            = "        genkey : create Private Key and Public Key"
-		strEditContacts   = "        editContacts : Edit your contact list."
-		strCustomEmoji    = "        editEmoji : Edit custom emoji list."
-		strEditRelay      = "        editRelays : Edit relay list."
-		strPubRelay       = "        pubRelays : Publish relay list."
-		strEditProfile    = "        editProfile : Edit your profile."
-		strPublishProfile = "        pubProfile : Publish your profile."
-		strPublishMessage = "        pubMessage <text message>: Publish message to relays."
-		strCatHome        = "        catHome [number] [date time]: Display home timeline.\n                                      The default number is 20.\n                                      date time format : \"2023/07/24 17:49:51 JST\""
-		strCatSelf        = "        catSelf [number] [date time]: Display your posts.\n                                      The default number is 20.\n                                      date time format : \"2023/07/24 17:49:51 JST\""
-		strCatEvent       = "        catEvent <hex type Event id>: Display the event specified by Event Id.\n"
-	)
+	usageTxt := `Usage :
+	nostk <sub-command> [param...]
+		init :
+			Initializing the nostk environment
+		genkey :
+			create Private Key and Public Key
+		editRelays :
+			Edit relay list.
+		editContacts :
+			Edit your contact list.
 
-	fmt.Println(usage)
-	fmt.Println(subcommand)
-	fmt.Println(strInit)
-	fmt.Println(genkey)
-	fmt.Println(strCustomEmoji)
-	fmt.Println(strEditContacts)
-	fmt.Println(strEditRelay)
-	fmt.Println(strPubRelay)
-	fmt.Println(strEditProfile)
-	fmt.Println(strPublishProfile)
-	fmt.Println(strPublishMessage)
-	fmt.Println(strCatHome)
-	fmt.Println(strCatSelf)
-	fmt.Println(strCatEvent)
+		editEmoji :
+			Edit custom emoji list.
+		pubRelays :
+			Publish relay list.
+		editProfile :
+			Edit your profile.
+		pubProfile :
+			Publish your profile.
+
+		pubMessage <text message> :
+			Publish message to relays.
+
+		catHome [number] [date time] :
+			Display home timeline.
+			The default number is 20.
+			date time format : \"2023/07/24 17:49:51 JST\"
+		catSelf [number] [date time] :
+			Display your posts.
+			The default number is 20.
+			date time format : \"2023/07/24 17:49:51 JST\"
+		catEvent <hex type Event id> :
+			Display the event specified by Event Id.
+
+		removeEvent <hex type Event id> [reason] :
+			Remove the event specified by Event Id.
+			(Test implementation)`
+	fmt.Fprintf(os.Stderr, "%s\n", usageTxt)
 }
-
 // }}}
 
 /*
