@@ -23,18 +23,21 @@ import (
 
 // type declaration {{{
 const (
-	secretDir = ".nostk"
-	hsec      = ".hsec"
-	nsec      = ".nsec"
-	hpub      = ".hpub"
-	npub      = ".npub"
-	relays    = "relays.json"
-	profile   = "profile.json"
-	emoji     = "customemoji.json"
-	contacts  = "contacts.json"
-	waitTime  = 15
-	defReadNo = 20
-	singleReadNo = 1
+	secretDir     = ".nostk"
+	hsec          = ".hsec"
+	nsec          = ".nsec"
+	hpub          = ".hpub"
+	npub          = ".npub"
+	relays        = "relays.json"
+	profile       = "profile.json"
+	emoji         = "customemoji.json"
+	contacts      = "contacts.json"
+	waitTime      = 15
+	defReadNo     = 20
+	singleReadNo  = 1
+	readWriteFlag = 0
+	readFlag      = 1
+	writeFlag     = 2
 )
 
 type ProfileMetadata struct {
@@ -67,6 +70,7 @@ type NOSTRLOG struct {
 	Id       string
 	Contents CONTENTS
 }
+
 // }}}
 
 /*
@@ -302,7 +306,7 @@ func publishProfile() error {
 		return err
 	}
 
-	if err := getRelayList(&rl); err != nil {
+	if err := getRelayList(&rl, writeFlag); err != nil {
 		fmt.Println("Nothing relay list. Make a relay list.")
 		return err
 	}
@@ -379,7 +383,7 @@ func publishRelayList() error {
 	}
 
 	var rl []string
-	if err := getRelayList(&rl); err != nil {
+	if err := getRelayList(&rl, writeFlag); err != nil {
 		fmt.Println("Nothing relay list. Make a relay list.")
 		return err
 	}
@@ -442,7 +446,7 @@ func publishMessage(args []string) error {
 	}
 
 	var rl []string
-	if err := getRelayList(&rl); err != nil {
+	if err := getRelayList(&rl, writeFlag); err != nil {
 		fmt.Println("Nothing relay list. Make a relay list.")
 		return err
 	}
@@ -523,7 +527,7 @@ func catHome(args []string) error {
 	}
 
 	var rs []string
-	if err := getRelayList(&rs); err != nil {
+	if err := getRelayList(&rs, readFlag); err != nil {
 		return err
 	}
 	var npub []string
@@ -620,7 +624,7 @@ func catSelf(args []string) error {
 	}
 
 	var rs []string
-	if err := getRelayList(&rs); err != nil {
+	if err := getRelayList(&rs, readFlag); err != nil {
 		return err
 	}
 	var npub []string
@@ -700,7 +704,7 @@ func catEvent(args []string) error {
 	eventId := args[2]
 
 	var rs []string
-	if err := getRelayList(&rs); err != nil {
+	if err := getRelayList(&rs, readFlag); err != nil {
 		return err
 	}
 
@@ -709,12 +713,11 @@ func catEvent(args []string) error {
 		return err
 	}
 
-
 	var filters []nostr.Filter
 	filters = []nostr.Filter{{
-		IDs:     []string{eventId},
-		Kinds:   []int{nostr.KindTextNote},
-		Limit:   num,
+		IDs:   []string{eventId},
+		Kinds: []int{nostr.KindTextNote},
+		Limit: num,
 	}}
 
 	ctx := context.Background()
@@ -746,6 +749,7 @@ func catEvent(args []string) error {
 		return nil
 	}
 }
+
 // }}}
 
 /*
@@ -789,7 +793,7 @@ func removeEvent(args []string) error {
 	}
 
 	var rl []string
-	if err := getRelayList(&rl); err != nil {
+	if err := getRelayList(&rl, writeFlag); err != nil {
 		fmt.Println("Nothing relay list. Make a relay list.")
 		return err
 	}
@@ -886,7 +890,7 @@ func emojiReaction(args []string) error {
 	}
 
 	var rl []string
-	if err := getRelayList(&rl); err != nil {
+	if err := getRelayList(&rl, readWriteFlag); err != nil {
 		fmt.Println("Nothing relay list. Make a relay list.")
 		return err
 	}
@@ -963,7 +967,7 @@ func getDir() (string, error) {
 /*
 getRelayList {{{
 */
-func getRelayList(rl *[]string) error {
+func getRelayList(rl *[]string, rwFlag int) error {
 	c := make(map[string]RwFlag)
 	f, err := openJSON5(relays)
 	if err != nil {
@@ -977,7 +981,6 @@ func getRelayList(rl *[]string) error {
 	if err != nil {
 		return err
 	}
-
 	b, err := json5.Marshal(data)
 	if err != nil {
 		return err
@@ -988,7 +991,11 @@ func getRelayList(rl *[]string) error {
 	}
 
 	for i := range c {
-		*rl = append(*rl, i)
+		if (c[i].Read == true && rwFlag == readFlag) ||
+			(c[i].Write == true && rwFlag == writeFlag) ||
+			(rwFlag == readWriteFlag) {
+			*rl = append(*rl, i)
+		}
 	}
 	return nil
 }
