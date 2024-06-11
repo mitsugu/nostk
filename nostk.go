@@ -32,6 +32,9 @@ const (
 	profile   = "profile.json"
 	emoji     = "customemoji.json"
 	contacts  = "contacts.json"
+	waitTime  = 15
+	defReadNo = 20
+	singleReadNo = 1
 )
 
 type ProfileMetadata struct {
@@ -70,7 +73,6 @@ type NOSTRLOG struct {
 main {{{
 */
 func main() {
-	//startDebug("/home/mitsugu/Develop/repo/Nostr/nostk/error.log")
 	if len(os.Args) < 2 {
 		dispHelp()
 		os.Exit(0)
@@ -125,6 +127,11 @@ func main() {
 			log.Fatal(err)
 			os.Exit(1)
 		}
+	case "catEvent":
+		if err := catEvent(os.Args); err != nil {
+			log.Fatal(err)
+			os.Exit(1)
+		}
 	case "dispHome":
 		if err := catHome(os.Args); err != nil {
 			log.Fatal(err)
@@ -171,6 +178,7 @@ func dispHelp() {
 		strPublishMessage = "        pubMessage <text message>: Publish message to relays."
 		strCatHome        = "        catHome [number] [date time]: Display home timeline.\n                                      The default number is 20.\n                                      date time format : \"2023/07/24 17:49:51 JST\""
 		strCatSelf        = "        catSelf [number] [date time]: Display your posts.\n                                      The default number is 20.\n                                      date time format : \"2023/07/24 17:49:51 JST\""
+		strCatEvent       = "        catEvent <hex type Event id>: Display the event specified by Event Id.\n"
 	)
 
 	fmt.Println(usage)
@@ -184,8 +192,9 @@ func dispHelp() {
 	fmt.Println(strEditProfile)
 	fmt.Println(strPublishProfile)
 	fmt.Println(strPublishMessage)
-	//fmt.Println(strCatHome)
-	//fmt.Println(strCatSelf)
+	fmt.Println(strCatHome)
+	fmt.Println(strCatSelf)
+	fmt.Println(strCatEvent)
 }
 
 // }}}
@@ -479,7 +488,7 @@ func publishMessage(args []string) error {
 catHome {{{
 */
 func catHome(args []string) error {
-	num := 20
+	num := defReadNo
 	var ut int64 = 0
 	for i := range args {
 		if i < 2 {
@@ -544,7 +553,7 @@ func catHome(args []string) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	timer := time.NewTimer(time.Second * 15)
+	timer := time.NewTimer(time.Second * waitTime)
 	defer timer.Stop()
 	go func() {
 		ch := pool.SubManyEose(ctx, rs, filters)
@@ -564,7 +573,7 @@ func catHome(args []string) error {
 	}()
 	select {
 	case <-timer.C:
-		fmt.Println("}")
+		//fmt.Println("}")
 		return nil
 	}
 }
@@ -575,7 +584,7 @@ func catHome(args []string) error {
 catSelf {{{
 */
 func catSelf(args []string) error {
-	num := 20
+	num := defReadNo
 	var ut int64 = 0
 	var wb []NOSTRLOG
 	for i := range args {
@@ -641,7 +650,7 @@ func catSelf(args []string) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	timer := time.NewTimer(time.Second * 15)
+	timer := time.NewTimer(time.Second * waitTime)
 	defer timer.Stop()
 	go func() {
 		ch := pool.SubManyEose(ctx, rs, filters)
@@ -677,6 +686,66 @@ func catSelf(args []string) error {
 	}
 }
 
+// }}}
+
+/*
+catEvent {{{
+*/
+func catEvent(args []string) error {
+	num := singleReadNo
+
+	if len(args) < 3 {
+		return errors.New("invalid argument")
+	}
+	eventId := args[2]
+
+	var rs []string
+	if err := getRelayList(&rs); err != nil {
+		return err
+	}
+
+	var npub []string
+	if err := getContactList(&npub); err != nil {
+		return err
+	}
+
+
+	var filters []nostr.Filter
+	filters = []nostr.Filter{{
+		IDs:     []string{eventId},
+		Kinds:   []int{nostr.KindTextNote},
+		Limit:   num,
+	}}
+
+	ctx := context.Background()
+	pool := nostr.NewSimplePool(ctx)
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	timer := time.NewTimer(time.Second * waitTime)
+	defer timer.Stop()
+	go func() {
+		ch := pool.SubManyEose(ctx, rs, filters)
+		fmt.Println("{")
+		for event := range ch {
+			switch event.Kind {
+			case 1:
+				buf := event.Content
+				buf = strings.Replace(buf, "\\", "\\\\", -1)
+				buf = strings.Replace(buf, "\"", "\\\"", -1)
+				buf = strings.Replace(buf, "\r", "", -1)
+				fmt.Printf("\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"},\n", event.ID, event.CreatedAt, event.PubKey, buf)
+			}
+		}
+		fmt.Println("}")
+		return
+	}()
+	select {
+	case <-timer.C:
+		//fmt.Println("}")
+		return nil
+	}
+}
 // }}}
 
 /*
