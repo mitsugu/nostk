@@ -19,7 +19,7 @@ Implementing a CLI client to use [Nostr Protocol](https://github.com/nostr-proto
 * Display your's note ([kind 1](https://github.com/nostr-protocol/nips/blob/master/01.md#kinds))
 
 ### ToDo
-* Support content warning
+* Support content warning (WIP)
 * Mention to any user
 * Publishing a message with message citations
 * Log viewer
@@ -147,4 +147,9 @@ nostk removeEvent <Hex event id> [reason]
 nostk emojiReaction <Hex event id> <Hex pubkey> <short code of custom emoji>
 ```
 
+### About content warning note
+  The catHome subcommand does not directly display notes with content warnings.  
+
+  The corresponding note will be printed to indicate that it is a content warning note, the reason will be displayed if a reason is set, and the event ID of the note will also be displayed.  
+To display a content warning note, run the catEvent subcommand by specifying the note's Event ID in hex.  
 
