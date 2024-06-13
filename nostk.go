@@ -577,9 +577,10 @@ func catHome(args []string, nsfwFlag bool) error {
 				} else {
 					buf = event.Content
 				}
+				buf = strings.Replace(buf, "\n", "\\n", -1)
 				buf = strings.Replace(buf, "\\", "\\\\", -1)
+				buf = strings.Replace(buf, "/", "\\/", -1)
 				buf = strings.Replace(buf, "\"", "\\\"", -1)
-				buf = strings.Replace(buf, "\r", "", -1)
 				var Contents CONTENTS
 				Contents.Date = fmt.Sprintf("%v", event.CreatedAt)
 				Contents.PubKey = event.PubKey
@@ -740,7 +741,9 @@ func catSelf(args []string) error {
 			switch event.Kind {
 			case 1:
 				buf := event.Content
+				buf = strings.Replace(buf, "\n", "\\n", -1)
 				buf = strings.Replace(buf, "\\", "\\\\", -1)
+				buf = strings.Replace(buf, "/", "\\/", -1)
 				buf = strings.Replace(buf, "\"", "\\\"", -1)
 				var Contents CONTENTS
 				Contents.Date = fmt.Sprintf("%v", event.CreatedAt)
@@ -812,9 +815,10 @@ func catEvent(args []string) error {
 			switch event.Kind {
 			case 1:
 				buf := event.Content
+				buf = strings.Replace(buf, "\n", "\\n", -1)
 				buf = strings.Replace(buf, "\\", "\\\\", -1)
+				buf = strings.Replace(buf, "/", "\\/", -1)
 				buf = strings.Replace(buf, "\"", "\\\"", -1)
-				buf = strings.Replace(buf, "\r", "", -1)
 				fmt.Printf("\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"},\n", event.ID, event.CreatedAt, event.PubKey, buf)
 			}
 		}
