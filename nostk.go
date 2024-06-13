@@ -606,6 +606,7 @@ func catHome(args []string, nsfwFlag bool) error {
 		return nil
 	}
 }
+
 // }}}
 
 /*
@@ -618,6 +619,7 @@ func replaceNsfw(e nostr.IncomingEvent) string {
 	strReason := getNsfwReason(e.Tags)
 	return fmt.Sprintf("Content Warning!!\n%v\n\nEvent ID : %v", strReason, e.ID)
 }
+
 // }}}
 
 /*
@@ -640,6 +642,7 @@ func getNsfwReason(tgs nostr.Tags) string {
 	}
 	return ""
 }
+
 // }}}
 
 /*
@@ -661,6 +664,7 @@ func checkNsfw(tgs nostr.Tags) bool {
 	}
 	return false
 }
+
 // }}}
 
 /*
