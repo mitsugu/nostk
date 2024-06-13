@@ -38,6 +38,8 @@ const (
 	readWriteFlag = 0
 	readFlag      = 1
 	writeFlag     = 2
+	unnsfw        = false
+	nsfw          = true
 )
 
 type ProfileMetadata struct {
@@ -127,7 +129,7 @@ func main() {
 			os.Exit(1)
 		}
 	case "catHome":
-		if err := catHome(os.Args); err != nil {
+		if err := catHome(os.Args, unnsfw); err != nil {
 			log.Fatal(err)
 			os.Exit(1)
 		}
@@ -137,7 +139,7 @@ func main() {
 			os.Exit(1)
 		}
 	case "dispHome":
-		if err := catHome(os.Args); err != nil {
+		if err := catHome(os.Args, unnsfw); err != nil {
 			log.Fatal(err)
 			os.Exit(1)
 		}
@@ -178,7 +180,6 @@ func dispHelp() {
 			Edit relay list.
 		editContacts :
 			Edit your contact list.
-
 		editEmoji :
 			Edit custom emoji list.
 		pubRelays :
@@ -187,10 +188,8 @@ func dispHelp() {
 			Edit your profile.
 		pubProfile :
 			Publish your profile.
-
 		pubMessage <text message> :
 			Publish message to relays.
-
 		catHome [number] [date time] :
 			Display home timeline.
 			The default number is 20.
@@ -207,6 +206,7 @@ func dispHelp() {
 			(Test implementation)`
 	fmt.Fprintf(os.Stderr, "%s\n", usageTxt)
 }
+
 // }}}
 
 /*
@@ -497,9 +497,10 @@ func publishMessage(args []string) error {
 /*
 catHome {{{
 */
-func catHome(args []string) error {
+func catHome(args []string, nsfwFlag bool) error {
 	num := defReadNo
 	var ut int64 = 0
+	var wb []NOSTRLOG
 	for i := range args {
 		if i < 2 {
 			continue
@@ -567,27 +568,98 @@ func catHome(args []string) error {
 	defer timer.Stop()
 	go func() {
 		ch := pool.SubManyEose(ctx, rs, filters)
-		fmt.Println("{")
 		for event := range ch {
 			switch event.Kind {
 			case 1:
-				buf := event.Content
+				var buf string
+				if nsfwFlag == unnsfw {
+					buf = replaceNsfw(event)
+				} else {
+					buf = event.Content
+				}
 				buf = strings.Replace(buf, "\\", "\\\\", -1)
 				buf = strings.Replace(buf, "\"", "\\\"", -1)
 				buf = strings.Replace(buf, "\r", "", -1)
-				fmt.Printf("\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"},\n", event.ID, event.CreatedAt, event.PubKey, buf)
+				var Contents CONTENTS
+				Contents.Date = fmt.Sprintf("%v", event.CreatedAt)
+				Contents.PubKey = event.PubKey
+				Contents.Content = buf
+				tmp := NOSTRLOG{event.ID, Contents}
+				wb = append(wb, tmp)
 			}
 		}
-		fmt.Println("}")
 		return
 	}()
 	select {
 	case <-timer.C:
-		//fmt.Println("}")
+		sort.Slice(wb, func(i, j int) bool {
+			return wb[i].Contents.Date > wb[j].Contents.Date
+		})
+		fmt.Println("{")
+		for i := range wb {
+			fmt.Printf(
+				"\t\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"},\n",
+				wb[i].Id, wb[i].Contents.Date, wb[i].Contents.PubKey, wb[i].Contents.Content)
+		}
+		fmt.Println("}")
 		return nil
 	}
 }
+// }}}
 
+/*
+replaceNsfw {{{
+*/
+func replaceNsfw(e nostr.IncomingEvent) string {
+	if checkNsfw(e.Tags) == false {
+		return e.Content
+	}
+	strReason := getNsfwReason(e.Tags)
+	return fmt.Sprintf("Content Warning!!\n%v\n\nEvent ID : %v", strReason, e.ID)
+}
+// }}}
+
+/*
+getNsfwReason {{{
+*/
+func getNsfwReason(tgs nostr.Tags) string {
+	if checkNsfw(tgs) == false {
+		return ""
+	}
+	for a := range tgs {
+		if len(tgs[a]) < 1 {
+			return ""
+		}
+		for cw := range tgs[a] {
+			if tgs[a][cw] == "content-warning" {
+				continue
+			}
+			return tgs[a][cw]
+		}
+	}
+	return ""
+}
+// }}}
+
+/*
+checkNsfw {{{
+*/
+func checkNsfw(tgs nostr.Tags) bool {
+	if len(tgs) < 1 {
+		return false
+	}
+	for a := range tgs {
+		if len(tgs[a]) < 1 {
+			return false
+		}
+		for cw := range tgs[a] {
+			if tgs[a][cw] == "content-warning" {
+				return true
+			}
+		}
+	}
+	return false
+}
 // }}}
 
 /*
