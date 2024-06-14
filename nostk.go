@@ -597,10 +597,19 @@ func catHome(args []string, nsfwFlag bool) error {
 			return wb[i].Contents.Date > wb[j].Contents.Date
 		})
 		fmt.Println("{")
+		last := len(wb) - 1
+		cnt := 0
 		for i := range wb {
-			fmt.Printf(
-				"\t\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"},\n",
-				wb[i].Id, wb[i].Contents.Date, wb[i].Contents.PubKey, wb[i].Contents.Content)
+			if cnt < last {
+				fmt.Printf(
+					"\t\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"},\n",
+					wb[i].Id, wb[i].Contents.Date, wb[i].Contents.PubKey, wb[i].Contents.Content)
+			} else {
+				fmt.Printf(
+					"\t\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"}\n",
+					wb[i].Id, wb[i].Contents.Date, wb[i].Contents.PubKey, wb[i].Contents.Content)
+			}
+			cnt++
 		}
 		fmt.Println("}")
 		return nil
@@ -764,11 +773,20 @@ func catSelf(args []string) error {
 		sort.Slice(wb, func(i, j int) bool {
 			return wb[i].Contents.Date > wb[j].Contents.Date
 		})
+		last := len(wb) - 1
+		cnt := 0
 		fmt.Println("{")
 		for i := range wb {
-			fmt.Printf(
-				"\t\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"},\n",
-				wb[i].Id, wb[i].Contents.Date, wb[i].Contents.PubKey, wb[i].Contents.Content)
+			if cnt < last {
+				fmt.Printf(
+					"\t\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"},\n",
+					wb[i].Id, wb[i].Contents.Date, wb[i].Contents.PubKey, wb[i].Contents.Content)
+			} else {
+				fmt.Printf(
+					"\t\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"}\n",
+					wb[i].Id, wb[i].Contents.Date, wb[i].Contents.PubKey, wb[i].Contents.Content)
+			}
+			cnt++
 		}
 		fmt.Println("}")
 		return nil
