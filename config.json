@@ -1,0 +1,19 @@
+{
+  "conf" : {
+    "filename" : {
+      "hsec" : ".hsec",
+      "nsec" : ".nsec",
+      "hpub" : ".hpub",
+      "npub" : ".npub",
+      "relays" : "relays.json",
+      "profile" : "profile.json",
+      "emoji" : "customemoji.json",
+      "contacts" : "contacts.json"
+    },
+    "settings" : {
+      "defaultReadNo" : 20,
+      "multiplierReadRelayWaitTime" : 0.001,
+      "defaultContentWarning" : true
+    }
+  }
+}
