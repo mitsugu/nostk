@@ -39,17 +39,18 @@ Implementing a CLI client to use [Nostr Protocol](https://github.com/nostr-proto
 ##### Windows
 ```command.com
 SETX EDITOR=<Text editor's full path name>
-go install github.com/mitsugu/nostk@HEAD
+go install github.com/mitsugu/nostk@main
 ```
 
 ##### Ubuntu and maybe other distribution
 For bash
 ```bash
 echo 'export EDITOR=vim' >> ~/.bashrc
-go install github.com/mitsugu/nostk@HEAD
+go install github.com/mitsugu/nostk@main
 ```
 
 #### Placement of config.json
+IF config.json NOT FOUND IN .nostk DIRECTORY, EXECUTE THE FOLLOWING.
 1. Download [config.json](https://raw.githubusercontent.com/mitsugu/nostk/main/config.json)
 2. Move config.json to "$HOME/.nostk" directory
 3. Adjust defaultReadNo, multiplierReadRelayWaitTime, and defaultContentWarning in config.json to your liking.
