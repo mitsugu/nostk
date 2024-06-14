@@ -49,6 +49,11 @@ echo 'export EDITOR=vim' >> ~/.bashrc
 go install github.com/mitsugu/nostk@HEAD
 ```
 
+#### Placement of config.json
+1. Download [config.json](https://raw.githubusercontent.com/mitsugu/nostk/main/config.json)
+2. Move config.json to "$HOME/.nostk" directory
+3. Adjust defaultReadNo, multiplierReadRelayWaitTime, and defaultContentWarning in config.json to your liking.
+
 #### Setting nostk:
 1. nostk init (must)
 2. nostk genkey (must)
