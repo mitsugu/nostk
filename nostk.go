@@ -68,6 +68,10 @@ func main() {
 
 	// load config.json
 	var cc confClass
+	if err := cc.existConfiguration(); err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
 	if err := cc.loadConfiguration(); err != nil {
 		log.Fatal(err)
 		os.Exit(1)
@@ -166,23 +170,48 @@ initEnv {{{
 */
 func initEnv(cc confClass) error {
 	// make skeleton of user profile
-	if err := cc.create(cc.ConfData.Filename.Profile, ProfileMetadata{"", "", "", "", "", "", "", ""}); err != nil {
+	if err := cc.create(cc.ConfData.Filename.Profile,
+		`{
+	"name":"",
+	"display_name":"",
+	"about":"",
+	"website":"",
+	"picture":"",
+	"banner":"",
+	"nip05":"",
+	"lud16":""
+}
+`); err != nil {
 		return err
 	}
-	p := make(map[string]RwFlag)
-	p[""] = RwFlag{true, true}
 	// make skeleton of relay list
-	if err := cc.create(cc.ConfData.Filename.Relays, p); err != nil {
+	if err := cc.create(cc.ConfData.Filename.Relays,
+		`{
+	"wws://" : {
+		"read":true,
+		"write":true
+	}
+}
+`); err != nil {
 		return err
 	}
 	// make skeleton of custom emoji list
-	if err := cc.create(cc.ConfData.Filename.Emoji, map[string]string{"name": "url"}); err != nil {
+	if err := cc.create(cc.ConfData.Filename.Emoji,
+		`{
+	"short code" : "image url"
+}
+`); err != nil {
 		return err
 	}
 	// make skeleton of contact list
-	c := make(map[string]CONTACT)
-	c["hex_pubkey"] = CONTACT{"", ""}
-	if err := cc.create(cc.ConfData.Filename.Contacts, c); err != nil {
+	if err := cc.create(cc.ConfData.Filename.Contacts,
+		`{
+	"hex pubkey" : {
+		"url" : "",
+		"name" : ""
+	}
+}
+`); err != nil {
 		return err
 	}
 	return nil

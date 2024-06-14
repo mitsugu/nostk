@@ -81,6 +81,46 @@ const (
 // }}}
 
 /*
+existConfiguration
+*/
+func (cc *confClass) existConfiguration() error {
+	dir, err := cc.getDir()
+	if err != nil {
+		return err
+	}
+	path := filepath.Join(dir, confFile)
+	if _, err := os.Stat(path); err != nil {
+		// make config.json
+		if err := cc.create(confFile,
+			`{
+  "conf" : {
+    "filename" : {
+      "hsec" : ".hsec",
+      "nsec" : ".nsec",
+      "hpub" : ".hpub",
+      "npub" : ".npub",
+      "relays" : "relays.json",
+      "profile" : "profile.json",
+      "emoji" : "customemoji.json",
+      "contacts" : "contacts.json"
+    },
+    "settings" : {
+      "defaultReadNo" : 20,
+      "multiplierReadRelayWaitTime" : 0.001,
+      "defaultContentWarning" : true
+    }
+  }
+}
+`); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+//
+
+/*
 loadConfiguration {{{
 */
 func (cc *confClass) loadConfiguration() error {
@@ -288,18 +328,13 @@ func (cc *confClass) getMySelfPubkey(cl *[]string) error {
 /*
 create {{{
 */
-func (cc *confClass) create(fn string, v any) error {
-	s, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
+func (cc *confClass) create(fn string, s string) error {
 	d, err := cc.getDir()
 	if err != nil {
 		return err
 	}
 	path := filepath.Join(d, fn)
-	return os.WriteFile(path, s, 0644)
+	return os.WriteFile(path, []byte(s), 0644)
 }
 
 // }}}
