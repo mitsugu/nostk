@@ -15,15 +15,20 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"math"
 
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
 	"github.com/yosuke-furukawa/json5/encoding/json5"
 )
 
-// type declaration {{{
+// type declaration
+/*
+const
+*/
 const (
 	secretDir     = ".nostk"
+	confFile      = "config.json"
 	hsec          = ".hsec"
 	nsec          = ".nsec"
 	hpub          = ".hpub"
@@ -40,8 +45,40 @@ const (
 	writeFlag     = 2
 	unnsfw        = false
 	nsfw          = true
+	layout        = "2006/01/02 15:04:05 MST"
 )
+//
 
+/*
+configuration structure {{{
+*/
+type WrapConf struct {
+	Conf Conf `json:"conf"`
+}
+type Filename struct {
+	Contacts string `json:"contacts"`
+	Emoji    string `json:"emoji"`
+	Hpub     string `json:"hpub"`
+	Hsec     string `json:"hsec"`
+	Npub     string `json:"npub"`
+	Nsec     string `json:"nsec"`
+	Profile  string `json:"profile"`
+	Relays   string `json:"relays"`
+}
+type Settings struct {
+	DefaultContentWarning       bool    `json:"defaultContentWarning"`
+	DefaultReadNo               int     `json:"defaultReadNo"`
+	MultiplierReadRelayWaitTime float64 `json:"multiplierReadRelayWaitTime"`
+}
+type Conf struct {
+	Filename Filename `json:"filename"`
+	Settings Settings `json:"settings"`
+}
+// }}}
+
+/*
+profile structure {{{
+*/
 type ProfileMetadata struct {
 	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
@@ -52,17 +89,29 @@ type ProfileMetadata struct {
 	NIP05       string `json:"nip05"`
 	LUD16       string `json:"lud16"`
 }
+// }}}
 
+/*
+for relays structure {{{
+*/
 type RwFlag struct {
 	Read  bool `json:"read"`
 	Write bool `json:"write"`
 }
+// }}}
 
+/*
+for contact lists structure {{{
+*/
 type CONTACT struct {
 	Url  string `json:"url"`
 	Name string `json:"name"`
 }
+// }}}
 
+/*
+Log data structures {{{
+*/
 type CONTENTS struct {
 	Date    string `json:"date"`
 	PubKey  string `json:"pubkey"`
@@ -72,13 +121,13 @@ type NOSTRLOG struct {
 	Id       string
 	Contents CONTENTS
 }
-
 // }}}
 
 /*
 main {{{
 */
 func main() {
+	//startDebug("/home/mitsugu/Develop/repo/Nostr/nostk/out.err")
 	if len(os.Args) < 2 {
 		dispHelp()
 		os.Exit(0)
@@ -111,7 +160,6 @@ func main() {
 			log.Fatal(err)
 		}
 	case "editContacts":
-		log.Println("contacts")
 		if err := edit(contacts); err != nil {
 			log.Fatal(err)
 		}
@@ -501,6 +549,13 @@ func catHome(args []string, nsfwFlag bool) error {
 	num := defReadNo
 	var ut int64 = 0
 	var wb []NOSTRLOG
+
+	c, err := getConfiguration()
+	if err != nil {
+		return err
+	}
+	num = c.Settings.DefaultReadNo
+
 	for i := range args {
 		if i < 2 {
 			continue
@@ -509,7 +564,6 @@ func catHome(args []string, nsfwFlag bool) error {
 		case 2:
 			tmpnum, err := strconv.Atoi(args[2])
 			if err != nil {
-				layout := "2006/01/02 15:04:05 MST"
 				tp, err := time.Parse(layout, args[2])
 				if err != nil {
 					return errors.New("An unknown argument was specified.")
@@ -520,7 +574,6 @@ func catHome(args []string, nsfwFlag bool) error {
 				num = tmpnum
 			}
 		case 3:
-			layout := "2006/01/02 15:04:05 MST"
 			tptmp, err := time.Parse(layout, args[3])
 			if err != nil {
 				num, err = strconv.Atoi(args[3])
@@ -564,7 +617,8 @@ func catHome(args []string, nsfwFlag bool) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	timer := time.NewTimer(time.Second * waitTime)
+	wt := time.Duration(int64(math.Ceil(float64(num) * c.Settings.MultiplierReadRelayWaitTime))) * time.Second
+	timer := time.NewTimer(wt)
 	defer timer.Stop()
 	go func() {
 		ch := pool.SubManyEose(ctx, rs, filters)
@@ -683,6 +737,13 @@ func catSelf(args []string) error {
 	num := defReadNo
 	var ut int64 = 0
 	var wb []NOSTRLOG
+
+	c, err := getConfiguration()
+	if err != nil {
+		return err
+	}
+	num = c.Settings.DefaultReadNo
+
 	for i := range args {
 		if i < 2 {
 			continue
@@ -691,7 +752,6 @@ func catSelf(args []string) error {
 		case 2:
 			tmpnum, err := strconv.Atoi(args[2])
 			if err != nil {
-				layout := "2006/01/02 15:04:05 MST"
 				tp, err := time.Parse(layout, args[2])
 				if err != nil {
 					return errors.New("An unknown argument was specified.")
@@ -702,7 +762,6 @@ func catSelf(args []string) error {
 				num = tmpnum
 			}
 		case 3:
-			layout := "2006/01/02 15:04:05 MST"
 			tptmp, err := time.Parse(layout, args[3])
 			if err != nil {
 				num, err = strconv.Atoi(args[3])
@@ -746,7 +805,8 @@ func catSelf(args []string) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	timer := time.NewTimer(time.Second * waitTime)
+	wt := time.Duration(int64(math.Ceil(float64(num) * c.Settings.MultiplierReadRelayWaitTime))) * time.Second
+	timer := time.NewTimer(wt)
 	defer timer.Stop()
 	go func() {
 		ch := pool.SubManyEose(ctx, rs, filters)
@@ -806,6 +866,13 @@ func catEvent(args []string) error {
 	}
 	eventId := args[2]
 
+	c, err := getConfiguration()
+	if err != nil {
+		return err
+	}
+	num = 1
+
+
 	var rs []string
 	if err := getRelayList(&rs, readFlag); err != nil {
 		return err
@@ -828,7 +895,8 @@ func catEvent(args []string) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	timer := time.NewTimer(time.Second * waitTime)
+	wt := time.Duration(int64(math.Ceil(float64(num) * c.Settings.MultiplierReadRelayWaitTime))) * time.Second
+	timer := time.NewTimer(wt)
 	defer timer.Stop()
 	go func() {
 		ch := pool.SubManyEose(ctx, rs, filters)
@@ -1066,6 +1134,36 @@ func getDir() (string, error) {
 	return home, nil
 }
 
+// }}}
+
+/*
+getConfiguration {{{
+*/
+func getConfiguration() (Conf, error) {
+	var ags WrapConf
+	f, err := openJSON5(confFile)
+	if err != nil {
+		return Conf{}, err
+	}
+	defer f.Close()
+
+	var data interface{}
+	dec := json5.NewDecoder(f)
+	err = dec.Decode(&data)
+	if err != nil {
+		return Conf{}, err
+	}
+	b, err := json5.Marshal(data)
+	if err != nil {
+		return Conf{}, err
+	}
+
+	if err := json5.Unmarshal([]byte(b), &ags); err != nil {
+		return Conf{}, err
+	}
+
+	return ags.Conf, nil
+}
 // }}}
 
 /*
