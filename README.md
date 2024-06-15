@@ -39,14 +39,14 @@ Implementing a CLI client to use [Nostr Protocol](https://github.com/nostr-proto
 ##### Windows
 ```command.com
 SETX EDITOR=<Text editor's full path name>
-go install github.com/mitsugu/nostk@main
+go install github.com/mitsugu/nostk@<tag name>
 ```
 
 ##### Ubuntu and maybe other distribution
 For bash
 ```bash
 echo 'export EDITOR=vim' >> ~/.bashrc
-go install github.com/mitsugu/nostk@main
+go install github.com/mitsugu/nostk@<tag name>
 ```
 
 #### Placement of config.json
