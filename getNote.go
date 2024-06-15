@@ -1,17 +1,17 @@
 package main
 
 import (
-	"runtime"
-	"log"
-	"strconv"
-	"time"
-	"errors"
 	"context"
-	"math"
-	"strings"
+	"errors"
 	"fmt"
-	"sort"
 	"github.com/nbd-wtf/go-nostr"
+	//"log"
+	"math"
+	"runtime"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
 )
 
 const (
@@ -19,17 +19,16 @@ const (
 	CatSelf = "main.catSelf"
 )
 
+/*
+getNote {{{
+*/
+
 func getNote(args []string, cc confClass) error {
 	var ut int64 = 0
 	var wb []NOSTRLOG
 
-// for test
-startDebug("/home/mitsugu/Develop/repo/Nostr/nostk/w.err")
-pc, _, _, _ := runtime.Caller(1)
-fn := runtime.FuncForPC(pc)
-if fn.Name()==CatHome {
-	log.Println(fn.Name())
-}
+	pc, _, _, _ := runtime.Caller(1)
+	fn := runtime.FuncForPC(pc)
 
 	c := cc.getConf()
 	num := c.Settings.DefaultReadNo
@@ -69,8 +68,16 @@ if fn.Name()==CatHome {
 		return err
 	}
 	var npub []string
-	if err := cc.getContactList(&npub); err != nil {
-		return err
+	if fn.Name() == CatHome {
+		if err := cc.getContactList(&npub); err != nil {
+			return err
+		}
+	} else if fn.Name() == CatSelf {
+		if err := cc.getMySelfPubkey(&npub); err != nil {
+			return err
+		}
+	} else {
+		return errors.New("The getNote function is called from a function that cannot use it.")
 	}
 
 	var filters []nostr.Filter
@@ -104,7 +111,7 @@ if fn.Name()==CatHome {
 			switch event.Kind {
 			case 1:
 				var buf string
-				if c.Settings.DefaultContentWarning {
+				if (fn.Name() == CatHome) && (c.Settings.DefaultContentWarning) {
 					buf = replaceNsfw(event)
 				} else {
 					buf = event.Content
@@ -149,4 +156,3 @@ if fn.Name()==CatHome {
 }
 
 // }}}
-
