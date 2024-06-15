@@ -142,6 +142,11 @@ func main() {
 			log.Fatal(err)
 			os.Exit(1)
 		}
+	case "catNSFW":
+		if err := catNSFW(os.Args, cc); err != nil {
+			log.Fatal(err)
+			os.Exit(1)
+		}
 	case "catEvent":
 		if err := catEvent(os.Args, cc); err != nil {
 			log.Fatal(err)

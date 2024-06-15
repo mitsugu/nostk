@@ -17,6 +17,7 @@ import (
 const (
 	CatHome = "main.catHome"
 	CatSelf = "main.catSelf"
+	CatNSFW = "main.catNSFW"
 )
 
 /*
@@ -68,7 +69,7 @@ func getNote(args []string, cc confClass) error {
 		return err
 	}
 	var npub []string
-	if fn.Name() == CatHome {
+	if fn.Name() == CatHome || fn.Name() == CatNSFW {
 		if err := cc.getContactList(&npub); err != nil {
 			return err
 		}
@@ -153,6 +154,64 @@ func getNote(args []string, cc confClass) error {
 		fmt.Println("}")
 		return nil
 	}
+}
+
+// }}}
+
+/*
+replaceNsfw {{{
+*/
+func replaceNsfw(e nostr.IncomingEvent) string {
+	if checkNsfw(e.Tags) == false {
+		return e.Content
+	}
+	strReason := getNsfwReason(e.Tags)
+	return fmt.Sprintf("Content Warning!!\n%v\n\nEvent ID : %v", strReason, e.ID)
+}
+
+// }}}
+
+/*
+getNsfwReason {{{
+*/
+func getNsfwReason(tgs nostr.Tags) string {
+	if checkNsfw(tgs) == false {
+		return ""
+	}
+	for a := range tgs {
+		if len(tgs[a]) < 1 {
+			return ""
+		}
+		for cw := range tgs[a] {
+			if tgs[a][cw] == "content-warning" {
+				continue
+			}
+			return tgs[a][cw]
+		}
+	}
+	return ""
+}
+
+// }}}
+
+/*
+checkNsfw {{{
+*/
+func checkNsfw(tgs nostr.Tags) bool {
+	if len(tgs) < 1 {
+		return false
+	}
+	for a := range tgs {
+		if len(tgs[a]) < 1 {
+			return false
+		}
+		for cw := range tgs[a] {
+			if tgs[a][cw] == "content-warning" {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // }}}
