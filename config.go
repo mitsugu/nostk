@@ -25,6 +25,7 @@ type WrapConf struct {
 type Filename struct {
 	Contacts string `json:"contacts"`
 	Emoji    string `json:"emoji"`
+	Filters  string `json:"filters"`
 	Hpub     string `json:"hpub"`
 	Hsec     string `json:"hsec"`
 	Npub     string `json:"npub"`
@@ -81,7 +82,7 @@ const (
 // }}}
 
 /*
-existConfiguration
+existConfiguration {{{
 */
 func (cc *confClass) existConfiguration() error {
 	dir, err := cc.getDir()
@@ -118,7 +119,7 @@ func (cc *confClass) existConfiguration() error {
 	return nil
 }
 
-//
+// }}}
 
 /*
 loadConfiguration {{{

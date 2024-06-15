@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nbd-wtf/go-nostr"
+	"github.com/yosuke-furukawa/json5/encoding/json5"
 	//"log"
 	"math"
 	"runtime"
@@ -12,13 +13,120 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"regexp"
 )
 
+/*
+const {{{
+*/
 const (
 	CatHome = "main.catHome"
 	CatSelf = "main.catSelf"
 	CatNSFW = "main.catNSFW"
 )
+// }}}
+
+/*
+filters structure {{{
+*/
+type Filters struct {
+	Content string `json:"content"`
+	Tags    string `json:"tags"`
+}
+
+// }}}
+
+type UserFilter struct {
+	strContentExp string
+	strTagsExp string
+}
+
+/*
+readUserFilter {{{
+*/
+func (uf *UserFilter) readUserFilter(cc confClass) error {
+	f, err := cc.openJSON5(cc.ConfData.Filename.Filters)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	var data interface{}
+	dec := json5.NewDecoder(f)
+	err = dec.Decode(&data)
+	if err != nil {
+		return err
+	}
+	b, err := json5.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	var c Filters
+	if err := json5.Unmarshal([]byte(b), &c); err != nil {
+		return err
+	}
+
+	uf.strContentExp = c.Content
+	uf.strTagsExp  = c.Tags
+
+	return nil
+}
+
+// }}}
+
+/*
+replaceUserFilter {{{
+*/
+func (uf *UserFilter) replaceUserFilter(ev nostr.IncomingEvent) (string, error) {
+	var builder strings.Builder
+	// tags process
+	if 0 < len(uf.strTagsExp) {
+		re, err := regexp.Compile(uf.strTagsExp)
+		if err != nil {
+			return "", err
+		}
+
+		for i := range ev.Tags {
+			for j := range ev.Tags[i] {
+				matches := re.FindAllString(ev.Tags[i][j], -1)
+				if 0 < len(matches) {
+					builder.WriteString("Detecting data in tags using user filters\n")
+					for k := range matches {
+						builder.WriteString(matches[k])
+						builder.WriteString("\n")
+					}
+					builder.WriteString("\n")
+				}
+			}
+		}
+	}
+
+	// content process
+	if 0 < len(uf.strContentExp) {
+		re, err := regexp.Compile(uf.strContentExp)
+		if err != nil {
+			return "", err
+		}
+		matches := re.FindAllString(ev.Content, -1)
+		if 0 < len(matches) {
+			builder.WriteString("Detecting data in content using user filters\n")
+			for i := range matches {
+				builder.WriteString(matches[i])
+				builder.WriteString("\n")
+			}
+			builder.WriteString("\n")
+		}
+	}
+	if 0 < len(builder.String()) {
+		buf := fmt.Sprintf("Evint ID : %v\n", ev.ID)
+		builder.WriteString(buf)
+		return builder.String(), nil
+	}
+	return "", nil
+}
+
+// }}}
 
 /*
 getNote {{{
@@ -30,6 +138,11 @@ func getNote(args []string, cc confClass) error {
 
 	pc, _, _, _ := runtime.Caller(1)
 	fn := runtime.FuncForPC(pc)
+
+	var uf UserFilter
+	if err := uf.readUserFilter(cc); err != nil {
+		return nil
+	}
 
 	c := cc.getConf()
 	num := c.Settings.DefaultReadNo
@@ -106,16 +219,38 @@ func getNote(args []string, cc confClass) error {
 	wt := time.Duration(int64(math.Ceil(float64(num)*c.Settings.MultiplierReadRelayWaitTime))) * time.Second
 	timer := time.NewTimer(wt)
 	defer timer.Stop()
-	go func() {
+	go func() error {
 		ch := pool.SubManyEose(ctx, rs, filters)
 		for event := range ch {
 			switch event.Kind {
 			case 1:
+				tmpBuf, err := uf.replaceUserFilter(event)
+				if err != nil {
+					return err
+				}
 				var buf string
-				if (fn.Name() == CatHome) && (c.Settings.DefaultContentWarning) {
-					buf = replaceNsfw(event)
-				} else {
-					buf = event.Content
+				switch fn.Name() {
+					case CatHome:
+						if c.Settings.DefaultContentWarning {
+							buf = replaceNsfw(event)
+						}
+						if (buf == event.Content) && (0 < len(tmpBuf)) {
+							buf = tmpBuf
+						}
+					case CatSelf:
+						buf = event.Content
+					case CatNSFW:
+						if 0 < len(tmpBuf) {
+							buf = tmpBuf
+						} else {
+							buf = event.Content
+						}
+					default:
+						if 0 < len(tmpBuf) {
+							buf = tmpBuf
+						} else {
+							buf = event.Content
+						}
 				}
 				buf = strings.Replace(buf, "\n", "\\n", -1)
 				buf = strings.Replace(buf, "\\", "\\\\", -1)
@@ -129,7 +264,7 @@ func getNote(args []string, cc confClass) error {
 				wb = append(wb, tmp)
 			}
 		}
-		return
+		return nil
 	}()
 	select {
 	case <-timer.C:
