@@ -21,16 +21,23 @@ func dispHelp() {
 			Edit your contact list.
 		editEmoji :
 			Edit custom emoji list.
+
 		pubRelays :
 			Publish relay list.
 		editProfile :
 			Edit your profile.
 		pubProfile :
 			Publish your profile.
+
 		pubMessage <text message> :
 			Publish message to relays.
+
 		catHome [number] [date time] :
 			Display home timeline.
+			The default number is 20.
+			date time format : \"2023/07/24 17:49:51 JST\"
+		catNSFW [number] [date time] :
+			Display home timeline include content warning contents.
 			The default number is 20.
 			date time format : \"2023/07/24 17:49:51 JST\"
 		catSelf [number] [date time] :
