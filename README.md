@@ -17,11 +17,13 @@ Implementing a CLI client to use [Nostr Protocol](https://github.com/nostr-proto
 * Publish profile
 * Display home timeline ([kind 1](https://github.com/nostr-protocol/nips/blob/master/01.md#kinds))
 * Display your's note ([kind 1](https://github.com/nostr-protocol/nips/blob/master/01.md#kinds))
+* Support content warning
 
 ### ToDo
-* Support content warning (WIP)
-* Mention to any user
-* Publishing a message with message citations
+* Support hash tags
+* Support mention to any user
+* Support re-note
+* Support message citations
 * Log viewer (PENDDING)
 * any more
 
@@ -121,7 +123,7 @@ nostk pubProfile
 
 #### Publish message
 ``` bash
-nostk pubMessage <text message>
+nostk pubMessage <text message> [reason of content warning]
 
 nostk pubMessage < (ps)
 
