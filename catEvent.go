@@ -55,6 +55,10 @@ func catEvent(args []string, cc confClass) error {
 			case 1:
 				buf := event.Content
 				buf = strings.Replace(buf, "\n", "\\n", -1)
+				buf = strings.Replace(buf, "\b", "\\b", -1)
+				buf = strings.Replace(buf, "\f", "\\f", -1)
+				buf = strings.Replace(buf, "\r", "\\r", -1)
+				buf = strings.Replace(buf, "\t", "\\t", -1)
 				buf = strings.Replace(buf, "\\", "\\\\", -1)
 				buf = strings.Replace(buf, "/", "\\/", -1)
 				buf = strings.Replace(buf, "\"", "\\\"", -1)
