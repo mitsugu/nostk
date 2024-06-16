@@ -29,8 +29,11 @@ func dispHelp() {
 		pubProfile :
 			Publish your profile.
 
-		pubMessage <text message> :
+		pubMessage <text message> [content warning reason]:
 			Publish message to relays.
+			content warning reason (optional) :
+				If this argument is specified,
+				the note will be treated as a CONENT WARNING NOTE.
 
 		catHome [number] [date time] :
 			Display home timeline.
