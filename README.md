@@ -166,13 +166,24 @@ To display a content warning note, run the catEvent subcommand by specifying the
 
 ### .vimrc sample code to call from vim
 ``` vimscript
-command! NPublishMessage w ! nostk pubMessage
+command! -nargs=? NPublishMessage call Pubmessage(<f-args>)
+function Pubmessage(...)
+	if a:0 >= 1
+		let l:buffer_contents = join(getline(1, '$'), "\n")
+		let l:command = "nostk pubMessage \"" . l:buffer_contents . "\" " . a:1
+		let l:command_output = system(l:command)
+		echo l:command_output
+	else
+		w ! nostk pubMessage
+	end
+endfunction
+
 command! -nargs=? NCathome call Cathome(<f-args>)
 function! Cathome(...)
 	if a:0 >= 1
 		let l:command = "nostk catHome " . a:1 . " | jq '.'"
 		let l:command_output = system(l:command)
-		call append(0, split(l:command_output, "\n"))
+		call append('$', split(l:command_output, "\n"))
 	else
 		r! nostk catHome | jq '.'
 	end
@@ -184,7 +195,7 @@ function! Catnsfw(...)
 	if a:0 >= 1
 		let l:command = "nostk catNSFW " . a:1 . " | jq '.'"
 		let l:command_output = system(l:command)
-		call append(0, split(l:command_output, "\n"))
+		call append('$', split(l:command_output, "\n"))
 	else
 		r! nostk catNSFW | jq '.'
 	end
@@ -196,11 +207,21 @@ function! Catself(...)
 	if a:0 >= 1
 		let l:command = "nostk catSelf " . a:1 . " | jq '.'"
 		let l:command_output = system(l:command)
-		call append(0, split(l:command_output, "\n"))
+		call append('$', split(l:command_output, "\n"))
 	else
 		r! nostk catSelf | jq '.'
 	end
 	set ft=json
+endfunction
+
+command! -nargs=1 NRemoveEvent call Removeevent(<f-args>)
+function! Removeevent(...)
+	let l:command = "nostk removeEvent "
+	for arg in a:000
+		let l:command .= arg
+	endfor
+	let l:command_output = system(l:command)
+	echo l:command_output
 endfunction
 ```
 
