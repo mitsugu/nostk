@@ -12,14 +12,21 @@ publishMessage {{{
 */
 func publishMessage(args []string, cc confClass) error {
 	var s string
+	strReason := ""
 	var err error
-	if len(args) < 3 {
+	switch len(args) {
+	case 2:
 		s, err = readStdIn()
 		if err != nil {
 			return errors.New("Not set text message")
 		}
-	} else {
+	case 3:
 		s = args[2]
+	case 4:
+		s = args[2]
+		strReason = args[3]
+	default:
+		return errors.New("Invalid number of arguments")
 	}
 
 	sk, err := cc.load(cc.ConfData.Filename.Hsec)
@@ -41,6 +48,10 @@ func publishMessage(args []string, cc confClass) error {
 	tgs := nostr.Tags{}
 	if err := cc.setCustomEmoji(s, &tgs); err != nil {
 		return err
+	}
+
+	if 0 < len(strReason) {
+		setContentWarning(strReason, &tgs)
 	}
 
 	ev := nostr.Event{
@@ -71,6 +82,20 @@ func publishMessage(args []string, cc confClass) error {
 	}
 
 	return nil
+}
+
+// }}}
+
+/*
+setContentWarning {{{
+*/
+func setContentWarning(r string, tgs *nostr.Tags) {
+	const CWTag = "content-warning"
+	var t []string
+	t = nil
+	t = append(t, CWTag)
+	t = append(t, r)
+	*tgs = append(*tgs, t)
 }
 
 // }}}
