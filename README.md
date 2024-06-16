@@ -22,7 +22,7 @@ Implementing a CLI client to use [Nostr Protocol](https://github.com/nostr-proto
 * Support content warning (WIP)
 * Mention to any user
 * Publishing a message with message citations
-* Log viewer
+* Log viewer (PENDDING)
 * any more
 
 ### Requirements
@@ -128,9 +128,14 @@ nostk pubMessage < (ps)
 (ps) | nostk pubMessage
 ```
 
-#### Display home timeline (kind 1)
+#### Display home timeline (kind 1, default uninclude content warning)
 ``` bash
 nostk catHome [number]
+```
+
+#### Display MSFW timeline (kind 1, default include content warning)
+``` bash
+nostk catNSFW [number]
 ```
 
 #### Display your's note (kind 1)
@@ -158,4 +163,44 @@ nostk emojiReaction <Hex event id> <Hex pubkey> <short code of custom emoji>
 
   The corresponding note will be printed to indicate that it is a content warning note, the reason will be displayed if a reason is set, and the event ID of the note will also be displayed.  
 To display a content warning note, run the catEvent subcommand by specifying the note's Event ID in hex.  
+
+### .vimrc sample code to call from vim
+``` vimscript
+command! NPublishMessage w ! nostk pubMessage
+command! -nargs=? NCathome call Cathome(<f-args>)
+function! Cathome(...)
+	if a:0 >= 1
+		let l:command = "nostk catHome " . a:1 . " | jq '.'"
+		let l:command_output = system(l:command)
+		call append(0, split(l:command_output, "\n"))
+	else
+		r! nostk catHome | jq '.'
+	end
+	set ft=json
+endfunction
+
+command! -nargs=? NCatnsfw call Catnsfw(<f-args>)
+function! Catnsfw(...)
+	if a:0 >= 1
+		let l:command = "nostk catNSFW " . a:1 . " | jq '.'"
+		let l:command_output = system(l:command)
+		call append(0, split(l:command_output, "\n"))
+	else
+		r! nostk catNSFW | jq '.'
+	end
+	set ft=json
+endfunction
+
+command! -nargs=? NCatself call Catself(<f-args>)
+function! Catself(...)
+	if a:0 >= 1
+		let l:command = "nostk catSelf " . a:1 . " | jq '.'"
+		let l:command_output = system(l:command)
+		call append(0, split(l:command_output, "\n"))
+	else
+		r! nostk catSelf | jq '.'
+	end
+	set ft=json
+endfunction
+```
 
