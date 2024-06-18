@@ -10,6 +10,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"regexp"
+	//"log"
 )
 
 type confClass struct {
@@ -271,28 +273,34 @@ func (cc *confClass) getContactList(cl *[]string) error {
 // }}}
 
 /*
-setCustomEmoji {{{
+setCustomEmoji
 */
 func (cc *confClass) setCustomEmoji(s string, tgs *nostr.Tags) error {
-	*tgs = nil
 	ts := make(map[string]string)
 	if err := cc.getCustomEmoji(&ts); err != nil {
-		return nil
+		return err
 	}
-	var t []string
-	for i := range ts {
-		if strings.Contains(s, ":"+i+":") {
-			t = nil
-			t = append(t, "emoji")
-			t = append(t, i)
-			t = append(t, ts[i])
-			*tgs = append(*tgs, t)
+
+	const strexp = `:([^:]+):`
+	re := regexp.MustCompile(strexp)
+
+	matches := re.FindAllString(s, -1)
+	for i := range matches {
+		t := ExTag{}
+		sc := strings.Replace(matches[i], ":", "", -1)
+		_, ok := ts[sc]
+		if ok {
+			t.addTagName("emoji")
+			t.addTagValue(sc)
+			t.addTagValue(ts[sc])
+			*tgs = append(*tgs, t.getNostrTag())
 		}
 	}
+
 	return nil
 }
 
-// }}}
+//
 
 /*
 getCustomEmoji {{{
