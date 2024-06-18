@@ -18,9 +18,9 @@ Implementing a CLI client to use [Nostr Protocol](https://github.com/nostr-proto
 * Display home timeline ([kind 1](https://github.com/nostr-protocol/nips/blob/master/01.md#kinds))
 * Display your's note ([kind 1](https://github.com/nostr-protocol/nips/blob/master/01.md#kinds))
 * Support content warning
+* Support hash tags
 
 ### ToDo
-* Support hash tags
 * Support mention to any user
 * Support re-note
 * Support message citations
