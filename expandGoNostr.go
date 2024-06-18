@@ -1,6 +1,6 @@
 package main
 
-import(
+import (
 	"github.com/nbd-wtf/go-nostr"
 )
 
@@ -33,4 +33,3 @@ func (ts *ExTags) addTag(t nostr.Tag) {
 func (t *ExTags) getNostrTags() nostr.Tags {
 	return t.tags
 }
-

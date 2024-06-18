@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nbd-wtf/go-nostr"
+	"regexp"
+	"strings"
 )
 
 /*
@@ -50,6 +52,8 @@ func publishMessage(args []string, cc confClass) error {
 		return err
 	}
 
+	setHashTags(s, &tgs)
+
 	if 0 < len(strReason) {
 		setContentWarning(strReason, &tgs)
 	}
@@ -85,6 +89,23 @@ func publishMessage(args []string, cc confClass) error {
 }
 
 // }}}
+
+/*
+ */
+func setHashTags(buf string, tgs *nostr.Tags) {
+	const strexp = `#\S+`
+	re := regexp.MustCompile(strexp)
+
+	matches := re.FindAllString(buf, -1)
+	for i := range matches {
+		t := ExTag{}
+		t.addTagName("t")
+		t.addTagValue(strings.ReplaceAll(strings.ReplaceAll(matches[i], "#", ""), " ", ""))
+		*tgs = append(*tgs, t.getNostrTag())
+	}
+}
+
+//
 
 /*
 setContentWarning {{{

@@ -8,12 +8,12 @@ import (
 	"github.com/yosuke-furukawa/json5/encoding/json5"
 	//"log"
 	"math"
+	"regexp"
 	"runtime"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
-	"regexp"
 )
 
 /*
@@ -24,6 +24,7 @@ const (
 	CatSelf = "main.catSelf"
 	CatNSFW = "main.catNSFW"
 )
+
 // }}}
 
 /*
@@ -38,7 +39,7 @@ type Filters struct {
 
 type UserFilter struct {
 	strContentExp string
-	strTagsExp string
+	strTagsExp    string
 }
 
 /*
@@ -68,7 +69,7 @@ func (uf *UserFilter) readUserFilter(cc confClass) error {
 	}
 
 	uf.strContentExp = c.Content
-	uf.strTagsExp  = c.Tags
+	uf.strTagsExp = c.Tags
 
 	return nil
 }
@@ -230,27 +231,27 @@ func getNote(args []string, cc confClass) error {
 				}
 				var buf string
 				switch fn.Name() {
-					case CatHome:
-						if c.Settings.DefaultContentWarning {
-							buf = replaceNsfw(event)
-						}
-						if (buf == event.Content) && (0 < len(tmpBuf)) {
-							buf = tmpBuf
-						}
-					case CatSelf:
+				case CatHome:
+					if c.Settings.DefaultContentWarning {
+						buf = replaceNsfw(event)
+					}
+					if (buf == event.Content) && (0 < len(tmpBuf)) {
+						buf = tmpBuf
+					}
+				case CatSelf:
+					buf = event.Content
+				case CatNSFW:
+					if 0 < len(tmpBuf) {
+						buf = tmpBuf
+					} else {
 						buf = event.Content
-					case CatNSFW:
-						if 0 < len(tmpBuf) {
-							buf = tmpBuf
-						} else {
-							buf = event.Content
-						}
-					default:
-						if 0 < len(tmpBuf) {
-							buf = tmpBuf
-						} else {
-							buf = event.Content
-						}
+					}
+				default:
+					if 0 < len(tmpBuf) {
+						buf = tmpBuf
+					} else {
+						buf = event.Content
+					}
 				}
 				buf = strings.Replace(buf, "\n", "\\n", -1)
 				buf = strings.Replace(buf, "\b", "\\b", -1)

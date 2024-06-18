@@ -9,8 +9,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"regexp"
+	"strings"
 	//"log"
 )
 
@@ -273,7 +273,7 @@ func (cc *confClass) getContactList(cl *[]string) error {
 // }}}
 
 /*
-setCustomEmoji
+setCustomEmoji {{{
 */
 func (cc *confClass) setCustomEmoji(s string, tgs *nostr.Tags) error {
 	ts := make(map[string]string)
@@ -300,7 +300,7 @@ func (cc *confClass) setCustomEmoji(s string, tgs *nostr.Tags) error {
 	return nil
 }
 
-//
+// }}}
 
 /*
 getCustomEmoji {{{
