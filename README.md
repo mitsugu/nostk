@@ -167,7 +167,15 @@ nostk emojiReaction <Hex event id> <Hex pubkey> <short code of custom emoji>
 To display a content warning note, run the catEvent subcommand by specifying the note's Event ID in hex.  
 
 ### .vimrc sample code to call from vim
+
 ``` vimscript
+" Usage
+"   1. Write content current buffer
+"   2. execute next command on command-line
+"      : NPublishMessage [reason]
+"        If reason is given as an argument,
+"          it will be published as a content warning note.
+"
 command! -nargs=? NPublishMessage call Pubmessage(<f-args>)
 function Pubmessage(...)
 	if a:0 >= 1
@@ -179,7 +187,15 @@ function Pubmessage(...)
 		w ! nostk pubMessage
 	end
 endfunction
+```
 
+``` vimscript
+" Usage
+"   execute next command on command-line
+"      : NCathome [number]
+"        If you pass number as an argument,
+"          it will ask the relay to subscribe to number notes.
+"
 command! -nargs=? NCathome call Cathome(<f-args>)
 function! Cathome(...)
 	if a:0 >= 1
@@ -191,7 +207,15 @@ function! Cathome(...)
 	end
 	set ft=json
 endfunction
+```
 
+``` vimscript
+" Usage
+"   execute next command on command-line
+"      : NCatnsfw [number]
+"        If you pass number as an argument,
+"          it will ask the relay to subscribe to number notes.
+"
 command! -nargs=? NCatnsfw call Catnsfw(<f-args>)
 function! Catnsfw(...)
 	if a:0 >= 1
@@ -203,7 +227,15 @@ function! Catnsfw(...)
 	end
 	set ft=json
 endfunction
+```
 
+``` vimscript
+" Usage
+"   execute next command on command-line
+"      : NCatself [number]
+"        If you pass number as an argument,
+"          it will ask the relay to subscribe to number notes.
+"
 command! -nargs=? NCatself call Catself(<f-args>)
 function! Catself(...)
 	if a:0 >= 1
@@ -215,7 +247,15 @@ function! Catself(...)
 	end
 	set ft=json
 endfunction
+```
 
+``` vimscript
+" Usage
+"   execute next command on command-line
+"      : NRemoveEvent <Event Id> [reason]
+"        Event Id : Specify the Event ID to be deleted
+"        reason   : Specify the reason for deletion. Reason is optional.
+"
 command! -nargs=1 NRemoveEvent call Removeevent(<f-args>)
 function! Removeevent(...)
 	let l:command = "nostk removeEvent "
@@ -223,6 +263,35 @@ function! Removeevent(...)
 		let l:command .= arg
 	endfor
 	let l:command_output = system(l:command)
+	echo l:command_output
+endfunction
+```
+
+``` vimscript
+" Usage
+"   1. Move the cursor to the EVENT ID of the post you want to react to
+"      in the nostk log DISPLAYED IN THE CURRENT BUFFER.
+"   2. execute next command on command-line
+"      : NEmojireaction <custom emoji short code>
+"        custom emoji short code : Specify a custom emoji shortcode
+"
+command! -nargs=1 NEmojireaction call Emojireaction(<f-args>)
+function! Emojireaction(stremoji)
+	let l:topline = line('.')
+	let l:btmline = l:topline + 3
+	let l:lines = getline(l:topline, l:btmline)
+	let l:lines_text = join(lines, "\n")
+	try
+		let l:json_data = json_decode("{" . l:lines_text . "}}")
+		let l:keys = keys(l:json_data)
+		let l:eventId = l:keys[0]
+		let l:data = l:json_data[l:eventId]
+		let l:pubkey = l:data.pubkey
+	catch
+		echoerr "Invalid JSON in selected range."
+	endtry
+	let l:cmd = 'nostk emojiReaction ' . l:eventId . " " . l:pubkey . ' "' . a:stremoji . '"'
+	let l:command_output = system(l:cmd)
 	echo l:command_output
 endfunction
 ```
