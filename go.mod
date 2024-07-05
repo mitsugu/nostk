@@ -1,9 +1,9 @@
 module github.com/mitsugu/nostk
 
-go 1.22.2
+go 1.22.5
 
 require (
-	github.com/nbd-wtf/go-nostr v0.33.0
+	github.com/nbd-wtf/go-nostr v0.34.0
 	github.com/yosuke-furukawa/json5 v0.1.1
 )
 
