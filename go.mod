@@ -3,7 +3,7 @@ module github.com/mitsugu/nostk
 go 1.22.5
 
 require (
-	github.com/nbd-wtf/go-nostr v0.34.1
+	github.com/nbd-wtf/go-nostr v0.34.2
 	github.com/yosuke-furukawa/json5 v0.1.1
 )
 
