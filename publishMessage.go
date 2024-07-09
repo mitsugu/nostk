@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/nbd-wtf/go-nostr"
 	"regexp"
-	"strings"
 )
 
 /*
@@ -91,21 +90,25 @@ func publishMessage(args []string, cc confClass) error {
 // }}}
 
 /*
- */
+setHashTags {{{
+*/
 func setHashTags(buf string, tgs *nostr.Tags) {
-	const strexp = `#\S+`
+	const strexp = `(?:^|[^\S#﹟＃])([#﹟＃][^\s#﹟＃][^\s#﹟＃]*[\s|$])`
+
 	re := regexp.MustCompile(strexp)
 
 	matches := re.FindAllString(buf, -1)
 	for i := range matches {
 		t := ExTag{}
 		t.addTagName("t")
-		t.addTagValue(strings.ReplaceAll(strings.ReplaceAll(matches[i], "#", ""), " ", ""))
+		rtmp := regexp.MustCompile(`[﹟＃#]`)
+		result := rtmp.ReplaceAllString(matches[i], "")
+		t.addTagValue(result)
 		*tgs = append(*tgs, t.getNostrTag())
 	}
 }
 
-//
+// }}}
 
 /*
 setContentWarning {{{
