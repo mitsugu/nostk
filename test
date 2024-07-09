@@ -1,6 +1,0 @@
-#! /bin/sh
-./build.sh
-./nostk ${1} > w.json
-cat w.json | jq '.' > wq.json
-rm w.json
-vim wq.json
