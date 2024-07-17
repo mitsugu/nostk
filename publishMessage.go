@@ -121,7 +121,7 @@ func setHashTags(buf string, tgs *nostr.Tags) {
 	for i := range matches {
 		t := ExTag{}
 		t.addTagName("t")
-		rtmp := regexp.MustCompile(`[﹟＃#]`)
+		rtmp := regexp.MustCompile(`[\s﹟＃#]`)
 		result := rtmp.ReplaceAllString(matches[i], "")
 		t.addTagValue(result)
 		*tgs = append(*tgs, t.getNostrTag())
