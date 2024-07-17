@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nbd-wtf/go-nostr"
+	//"log"
 	"regexp"
 )
 
@@ -51,7 +52,12 @@ func publishMessage(args []string, cc confClass) error {
 		return err
 	}
 
-	setHashTags(s, &tgs)
+	// hashtags
+	tmpstr, err := excludeHashtagsParsign(s)
+	if err != nil {
+		return err
+	}
+	setHashTags(tmpstr, &tgs)
 
 	if 0 < len(strReason) {
 		setContentWarning(strReason, &tgs)
@@ -90,13 +96,27 @@ func publishMessage(args []string, cc confClass) error {
 // }}}
 
 /*
+excludeHashtagsParsign {{{
+*/
+func excludeHashtagsParsign(src string) (string, error) {
+	const strexp = `(?:^|\s)([#﹟＃][^#﹟＃]\S*[#﹟＃]\S*)`
+	re, err := regexp.Compile(strexp)
+	if err != nil {
+		return "", err
+	}
+	result := re.ReplaceAllString(src, "")
+	return result, nil
+}
+
+// }}}
+
+/*
 setHashTags {{{
 */
 func setHashTags(buf string, tgs *nostr.Tags) {
-	const strexp = `(?:^|[^\S#﹟＃])([#﹟＃][^\s#﹟＃][^\s#﹟＃]*[\s|$])`
+	const strexp = `(?:^|\s)([#﹟＃][^#\s﹟＃]+[^\s|$])`
 
 	re := regexp.MustCompile(strexp)
-
 	matches := re.FindAllString(buf, -1)
 	for i := range matches {
 		t := ExTag{}
