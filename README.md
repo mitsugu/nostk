@@ -17,11 +17,12 @@ Implementing a CLI client to use [Nostr Protocol](https://github.com/nostr-proto
 * Publish profile
 * Display home timeline ([kind 1](https://github.com/nostr-protocol/nips/blob/master/01.md#kinds))
 * Display your's note ([kind 1](https://github.com/nostr-protocol/nips/blob/master/01.md#kinds))
+* Publish Note ([kind 1](https://github.com/nostr-protocol/nips/blob/master/01.md#kinds))
+* Publish Note to some user (like Mension, [kind 1](https://github.com/nostr-protocol/nips/blob/master/01.md#kinds))
 * Content warning
 * Hash tags
 
 ### ToDo
-* Mention to any user
 * Re-note
 * Message citations
 * Log viewer (Stoped development)
@@ -128,6 +129,11 @@ nostk pubMessage <text message> [reason of content warning]
 nostk pubMessage < (ps)
 
 (ps) | nostk pubMessage
+```
+
+#### Publish message to
+``` bash
+nostk pubMessageTo <text message> <hex pubkey of send to user>
 ```
 
 #### Display home timeline (kind 1, default uninclude content warning)
