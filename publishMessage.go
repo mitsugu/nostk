@@ -7,28 +7,51 @@ import (
 	"github.com/nbd-wtf/go-nostr"
 	//"log"
 	"regexp"
+	"runtime"
+)
+
+const (
+	Main			= "main.main"
+	PubMessageTo	= "main.publishMessageTo"
 )
 
 /*
 publishMessage {{{
 */
 func publishMessage(args []string, cc confClass) error {
-	var s string
-	strReason := ""
+	var s string		// content string
+	strReason := ""		// content warning reason
+	strPerson := ""		// hpub of person
 	var err error
-	switch len(args) {
-	case 2:
-		s, err = readStdIn()
-		if err != nil {
-			return errors.New("Not set text message")
+	pc, _, _, _ := runtime.Caller(1)
+	fn := runtime.FuncForPC(pc)
+	if fn.Name() == Main {
+		switch len(args) {
+		case 2:
+			// Receive content from standard input
+			s, err = readStdIn()
+			if err != nil {
+				return errors.New("Not set text message")
+			}
+		case 3:
+			// Receive content from arguments
+			s = args[2]
+		case 4:
+			// Receive content and content warning reason from arguments
+			s = args[2]
+			strReason = args[3]
+		default:
+			return errors.New("Invalid number of arguments")
 		}
-	case 3:
-		s = args[2]
-	case 4:
-		s = args[2]
-		strReason = args[3]
-	default:
-		return errors.New("Invalid number of arguments")
+	} else if fn.Name() == PubMessageTo {
+		if len(args) == 4 {
+			s = args[2]
+			strPerson = args[3]
+		} else {
+			return errors.New("Invalid number of arguments")
+		}
+	} else {
+		return errors.New("Invalid pubMessage function call")
 	}
 
 	sk, err := cc.load(cc.ConfData.Filename.Hsec)
@@ -61,6 +84,10 @@ func publishMessage(args []string, cc confClass) error {
 
 	if 0 < len(strReason) {
 		setContentWarning(strReason, &tgs)
+	}
+
+	if 0 < len(strPerson) {
+		setPerson(strPerson, &tgs)
 	}
 
 	ev := nostr.Event{
@@ -139,6 +166,20 @@ func setContentWarning(r string, tgs *nostr.Tags) {
 	t = nil
 	t = append(t, CWTag)
 	t = append(t, r)
+	*tgs = append(*tgs, t)
+}
+
+// }}}
+
+/*
+setContentWarning {{{
+*/
+func setPerson(p string, tgs *nostr.Tags) {
+	const PTag = "p"
+	var t []string
+	t = nil
+	t = append(t, PTag)
+	t = append(t, p)
 	*tgs = append(*tgs, t)
 }
 

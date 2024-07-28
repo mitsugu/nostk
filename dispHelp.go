@@ -34,6 +34,11 @@ func dispHelp() {
 			content warning reason (optional) :
 				If this argument is specified,
 				the note will be treated as a CONENT WARNING NOTE.
+		pubMessageTo <text message> <hex pubkey>:
+			Publish message to some user.
+			hex pubkey>:
+				Specify the user Pubkey to which the note will be sent.
+				This argument is required.
 
 		catHome [number] [date time] :
 			Display home timeline.
