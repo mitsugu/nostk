@@ -25,11 +25,10 @@ jobs:
         run: |
           mkdir -p artifacts/${{ matrix.os }}
           if [ ${{ matrix.os }} = 'ubuntu-latest' ]; then
-			GOOS=linux GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/nostk nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go publishMessageTo.go removeEvent.go getNote.go expandGoNostr.go
-
+            GOOS=linux GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/nostk nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go publishMessageTo.go removeEvent.go getNote.go expandGoNostr.go
           elif [ ${{ matrix.os }} = 'macos-latest' ]; then
-			GOOS=darwin GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/nostk_amd64 nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go publishMessageTo.go removeEvent.go getNote.go expandGoNostr.go
-			GOOS=darwin GOARCH=arm64 go build -o artifacts/${{ matrix.os }}/nostk_arm64 nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go publishMessageTo.go removeEvent.go getNote.go expandGoNostr.go
+            GOOS=darwin GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/nostk_amd64 nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go publishMessageTo.go removeEvent.go getNote.go expandGoNostr.go
+            GOOS=darwin GOARCH=arm64 go build -o artifacts/${{ matrix.os }}/nostk_arm64 nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go publishMessageTo.go removeEvent.go getNote.go expandGoNostr.go
             lipo -create -output artifacts/${{ matrix.os }}/nostk artifacts/${{ matrix.os }}/nostk_amd64 artifacts/${{ matrix.os }}/nostk_arm64
             rm artifacts/${{ matrix.os }}/nostk_amd64 artifacts/${{ matrix.os }}/nostk_arm64
           fi
@@ -37,8 +36,8 @@ jobs:
 
       - name: Copy json
         run: |
-		  cp config.json artifacts/${{ matrix.os }}/
-		  cp filters.json artifacts/${{ matrix.os }}/
+          cp config.json artifacts/${{ matrix.os }}/
+          cp filters.json artifacts/${{ matrix.os }}/
         shell: bash
 
       - name: Upload build artifacts
@@ -62,13 +61,13 @@ jobs:
       - name: Build for Windows
         run: |
           mkdir -p artifacts/windows-latest
-		  go build -o artifacts/windows-latest/nostk.exe nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go publishMessageTo.go removeEvent.go getNote.go expandGoNostr.go
+          go build -o artifacts/windows-latest/nostk.exe nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go publishMessageTo.go removeEvent.go getNote.go expandGoNostr.go
         shell: pwsh
 
       - name: Copy json
         run: |
-		  Copy-Item -Path config.json -Destination artifacts/windows-latest/
-		  Copy-Item -Path filters.json -Destination artifacts/windows-latest/
+          Copy-Item -Path config.json -Destination artifacts/windows-latest/
+          Copy-Item -Path filters.json -Destination artifacts/windows-latest/
         shell: pwsh
 
       - name: Upload build artifacts
