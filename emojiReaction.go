@@ -30,9 +30,10 @@ import (
 func emojiReaction(args []string, cc confClass) error {
 	var event_id string
 	var public_key string
+	var kind string
 	var content string
 
-	if len(args) < 5 {
+	if len(args) < 6 {
 		return errors.New("Wrong number of parameters")
 	}
 	for i := range args {
@@ -45,6 +46,8 @@ func emojiReaction(args []string, cc confClass) error {
 		case 3: // public_key
 			public_key = args[i]
 		case 4: // content
+			kind = args[i]
+		case 5: // content
 			content = args[i]
 		}
 	}
@@ -85,7 +88,7 @@ func emojiReaction(args []string, cc confClass) error {
 	tgs = append(tgs, t)
 	t = nil
 	t = append(t, "k")
-	t = append(t, "1")
+	t = append(t, kind)
 	tgs = append(tgs, t)
 
 	ev := nostr.Event{
