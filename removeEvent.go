@@ -20,9 +20,10 @@ import (
 */
 func removeEvent(args []string, cc confClass) error {
 	var event_id string
+	var kind string
 	content := ""
 
-	if len(args) < 3 || 4 < len(args) {
+	if len(args) < 4 || 5 < len(args) {
 		return errors.New("Wrong number of parameters")
 	}
 	for i := range args {
@@ -32,7 +33,9 @@ func removeEvent(args []string, cc confClass) error {
 		switch i {
 		case 2: // event_id
 			event_id = args[i]
-		case 3: // content
+		case 3: // kind
+			kind = args[i]
+		case 4: // content
 			content = args[i]
 		}
 	}
@@ -61,6 +64,9 @@ func removeEvent(args []string, cc confClass) error {
 	t = nil
 	t = append(t, "e")
 	t = append(t, event_id)
+	tgs = append(tgs, t)
+	t = append(t, "k")
+	t = append(t, kind)
 	tgs = append(tgs, t)
 
 	ev := nostr.Event{

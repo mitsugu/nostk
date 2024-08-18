@@ -55,7 +55,7 @@ func dispHelp() {
 		catEvent <hex type Event id> :
 			Display the event specified by Event Id.
 
-		removeEvent <hex type Event id> [reason] :
+		removeEvent <hex type Event id> <kind> [reason] :
 			Remove the event specified by Event Id.
 			(Test implementation)`
 	fmt.Fprintf(os.Stderr, "%s\n", usageTxt)
