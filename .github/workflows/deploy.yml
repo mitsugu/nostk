@@ -1,0 +1,162 @@
+name: Deploy
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-ubuntu-macos:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.*'
+
+      - name: Build for ${{ matrix.os }}
+        run: |
+          mkdir -p artifacts/${{ matrix.os }}
+          if [ ${{ matrix.os }} = 'ubuntu-latest' ]; then
+			GOOS=linux GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/nostk nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go publishMessageTo.go removeEvent.go getNote.go expandGoNostr.go
+
+          elif [ ${{ matrix.os }} = 'macos-latest' ]; then
+			GOOS=darwin GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/nostk_amd64 nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go publishMessageTo.go removeEvent.go getNote.go expandGoNostr.go
+			GOOS=darwin GOARCH=arm64 go build -o artifacts/${{ matrix.os }}/nostk_arm64 nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go publishMessageTo.go removeEvent.go getNote.go expandGoNostr.go
+            lipo -create -output artifacts/${{ matrix.os }}/nostk artifacts/${{ matrix.os }}/nostk_amd64 artifacts/${{ matrix.os }}/nostk_arm64
+            rm artifacts/${{ matrix.os }}/nostk_amd64 artifacts/${{ matrix.os }}/nostk_arm64
+          fi
+        shell: bash
+
+      - name: Copy json
+        run: |
+		  cp config.json artifacts/${{ matrix.os }}/
+		  cp filters.json artifacts/${{ matrix.os }}/
+        shell: bash
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.os }}
+          path: artifacts/${{ matrix.os }}
+
+  build-windows:
+    runs-on: windows-latest
+    needs: build-ubuntu-macos
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.*'
+
+      - name: Build for Windows
+        run: |
+          mkdir -p artifacts/windows-latest
+		  go build -o artifacts/windows-latest/nostk.exe nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go publishMessageTo.go removeEvent.go getNote.go expandGoNostr.go
+        shell: pwsh
+
+      - name: Copy json
+        run: |
+		  Copy-Item -Path config.json -Destination artifacts/windows-latest/
+		  Copy-Item -Path filters.json -Destination artifacts/windows-latest/
+        shell: pwsh
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-windows-latest
+          path: artifacts/windows-latest
+
+  zip:
+    needs: [build-ubuntu-macos, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: List artifacts directory
+        run: |
+          echo "Listing artifacts directory:"
+          ls -la ./artifacts || echo "artifacts directory not found"
+          echo "Listing zipped artifacts directory:"
+          ls -la ./artifacts/zipped-artifacts/ || echo "zipped-artifacts directory not found"
+        shell: bash
+
+      - name: Create ZIP files
+        run: |
+          mkdir -p artifacts/zipped-artifacts
+          cd artifacts
+
+          # List files to confirm existence
+          echo "Listing files in build-ubuntu-latest/"
+          ls -la build-ubuntu-latest
+
+          echo "Listing files in build-macos-latest/"
+          ls -la build-macos-latest
+
+          echo "Listing files in build-windows-latest/"
+          ls -la build-windows-latest
+
+          # Create ZIP files
+          if [ -f build-ubuntu-latest/nostk ] && [ -f build-ubuntu-latest/config.json ] && [ -f build-ubuntu-latest/filters.json ]; then
+            zip -r zipped-artifacts/nostk-linux.zip build-ubuntu-latest/nostk build-ubuntu-latest/config.json build-ubuntu-latest/filters.json
+          fi
+
+          if [ -f build-macos-latest/nostk ] && [ -f build-macos-latest/config.json ] && [ -f build-macos-latest/filters.json ]; then
+            zip -r zipped-artifacts/nostk-macos.zip build-macos-latest/nostk build-macos-latest/config.jsonbuild-macos-latest/filters.json
+          fi
+
+          if [ -f build-windows-latest/nostk.exe ] && [ -f build-windows-latest/config.json ] && [ -f build-windows-latest/filters.json ]; then
+            zip -r zipped-artifacts/nostk-windows.zip build-windows-latest/nostk.exe build-windows-latest/config.jso build-windows-latest/filters.jsonn
+          fi
+
+          # Verify ZIP files creation
+          echo "Listing ZIP files"
+          ls -la zipped-artifacts/
+        shell: bash
+
+      - name: Upload ZIP files
+        uses: actions/upload-artifact@v4
+        with:
+          name: zipped-artifacts
+          path: artifacts/zipped-artifacts/
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 6
+          overwrite: true
+
+  release:
+    needs: zip
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download ZIP files
+        uses: actions/download-artifact@v4
+        with:
+          name: zipped-artifacts
+          path: ./artifacts
+
+      - name: Display structure of downloaded files
+        run: ls -R
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./artifacts/nostk-linux.zip
+            ./artifacts/nostk-macos.zip
+            ./artifacts/nostk-windows.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
