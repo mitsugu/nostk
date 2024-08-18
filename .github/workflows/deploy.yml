@@ -35,9 +35,7 @@ jobs:
         shell: bash
 
       - name: Copy json
-        run: |
-          cp config.json artifacts/${{ matrix.os }}/
-          cp filters.json artifacts/${{ matrix.os }}/
+        run: cp *.json artifacts/${{ matrix.os }}/
         shell: bash
 
       - name: Upload build artifacts
@@ -65,9 +63,7 @@ jobs:
         shell: pwsh
 
       - name: Copy json
-        run: |
-          Copy-Item -Path config.json -Destination artifacts/windows-latest/
-          Copy-Item -Path filters.json -Destination artifacts/windows-latest/
+        run: Copy-Item -Path *.json -Destination artifacts/windows-latest/
         shell: pwsh
 
       - name: Upload build artifacts
