@@ -25,11 +25,11 @@ jobs:
         run: |
           mkdir -p artifacts/${{ matrix.os }}
           if [ ${{ matrix.os }} = 'ubuntu-latest' ]; then
-            GOOS=linux GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/nostk nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go publishMessageTo.go removeEvent.go getNote.go expandGoNostr.go
+            GOOS=linux GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/nostk-linux nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go publishMessageTo.go removeEvent.go getNote.go expandGoNostr.go
           elif [ ${{ matrix.os }} = 'macos-latest' ]; then
             GOOS=darwin GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/nostk_amd64 nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go publishMessageTo.go removeEvent.go getNote.go expandGoNostr.go
             GOOS=darwin GOARCH=arm64 go build -o artifacts/${{ matrix.os }}/nostk_arm64 nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go publishMessageTo.go removeEvent.go getNote.go expandGoNostr.go
-            lipo -create -output artifacts/${{ matrix.os }}/nostk artifacts/${{ matrix.os }}/nostk_amd64 artifacts/${{ matrix.os }}/nostk_arm64
+            lipo -create -output artifacts/${{ matrix.os }}/nostk-macos artifacts/${{ matrix.os }}/nostk_amd64 artifacts/${{ matrix.os }}/nostk_arm64
             rm artifacts/${{ matrix.os }}/nostk_amd64 artifacts/${{ matrix.os }}/nostk_arm64
           fi
         shell: bash
@@ -109,16 +109,16 @@ jobs:
           ls -la build-windows-latest
 
           # Create ZIP files
-          if [ -f build-ubuntu-latest/nostk ] && [ -f build-ubuntu-latest/config.json ] && [ -f build-ubuntu-latest/filters.json ]; then
-            zip -r zipped-artifacts/nostk-linux.zip build-ubuntu-latest/nostk build-ubuntu-latest/config.json build-ubuntu-latest/filters.json
+          if [ -f build-ubuntu-latest/nostk-linux ] && [ -f build-ubuntu-latest/config.json ] && [ -f build-ubuntu-latest/filters.json ]; then
+            zip -r zipped-artifacts/nostk-linux.zip build-ubuntu-latest/nostk-linux build-ubuntu-latest/config.json build-ubuntu-latest/filters.json
           fi
 
-          if [ -f build-macos-latest/nostk ] && [ -f build-macos-latest/config.json ] && [ -f build-macos-latest/filters.json ]; then
-            zip -r zipped-artifacts/nostk-macos.zip build-macos-latest/nostk build-macos-latest/config.jsonbuild-macos-latest/filters.json
+          if [ -f build-macos-latest/nostk-macos ] && [ -f build-macos-latest/config.json ] && [ -f build-macos-latest/filters.json ]; then
+            zip -r zipped-artifacts/nostk-macos.zip build-macos-latest/nostk-macos build-macos-latest/config.json build-macos-latest/filters.json
           fi
 
           if [ -f build-windows-latest/nostk.exe ] && [ -f build-windows-latest/config.json ] && [ -f build-windows-latest/filters.json ]; then
-            zip -r zipped-artifacts/nostk-windows.zip build-windows-latest/nostk.exe build-windows-latest/config.jso build-windows-latest/filters.jsonn
+            zip -r zipped-artifacts/nostk-windows.zip build-windows-latest/nostk.exe build-windows-latest/config.json build-windows-latest/filters.json
           fi
 
           # Verify ZIP files creation
