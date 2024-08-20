@@ -4,7 +4,7 @@ Implementing a CLI client to use [Nostr Protocol](https://github.com/nostr-proto
 
 ### Develop Environment
 * Ubuntu 23.04 and later
-* Go Language 1.22.4 and later
+* Go Language 1.23.0 and later
 
 ### Features
 * Initializing the nostk environment
@@ -31,6 +31,7 @@ Implementing a CLI client to use [Nostr Protocol](https://github.com/nostr-proto
 ### Requirements
 * [nbd-wtf / go-nostr](https://github.com/nbd-wtf/go-nostr)
 * Some kind of text editor
+* Setting $HOME environment variable
 * Setting $EDITOR environment variable
 
 ### Setup
