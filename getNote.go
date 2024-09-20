@@ -79,7 +79,7 @@ func (uf *UserFilter) readUserFilter(cc confClass) error {
 /*
 replaceUserFilter {{{
 */
-func (uf *UserFilter) replaceUserFilter(ev nostr.IncomingEvent) (string, error) {
+func (uf *UserFilter) replaceUserFilter(ev nostr.RelayEvent) (string, error) {
 	var builder strings.Builder
 	// tags process
 	if 0 < len(uf.strTagsExp) {
@@ -301,7 +301,7 @@ func getNote(args []string, cc confClass) error {
 /*
 replaceNsfw {{{
 */
-func replaceNsfw(e nostr.IncomingEvent) string {
+func replaceNsfw(e nostr.RelayEvent) string {
 	if checkNsfw(e.Tags) == false {
 		return e.Content
 	}
