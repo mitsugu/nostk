@@ -5,23 +5,24 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nbd-wtf/go-nostr"
+	"github.com/nbd-wtf/go-nostr/nip19"
 	//"log"
 	"regexp"
 	"runtime"
 )
 
 const (
-	Main			= "main.main"
-	PubMessageTo	= "main.publishMessageTo"
+	Main         = "main.main"
+	PubMessageTo = "main.publishMessageTo"
 )
 
 /*
 publishMessage {{{
 */
 func publishMessage(args []string, cc confClass) error {
-	var s string		// content string
-	strReason := ""		// content warning reason
-	strPerson := ""		// hpub of person
+	var s string    // content string
+	strReason := "" // content warning reason
+	strPerson := "" // hpub of person
 	var err error
 	pc, _, _, _ := runtime.Caller(1)
 	fn := runtime.FuncForPC(pc)
@@ -52,6 +53,11 @@ func publishMessage(args []string, cc confClass) error {
 		}
 	} else {
 		return errors.New("Invalid pubMessage function call")
+	}
+
+	if containsNsec1(s) || containsHsec1(s) {
+		fmt.Println("STRONGEST CAUTION!! : POSTS CONTAINING PRIVATE KEYS!! YOUR POST HAS BEEN REJECTED!!")
+		return err
 	}
 
 	sk, err := cc.load(cc.ConfData.Filename.Hsec)
@@ -181,6 +187,44 @@ func setPerson(p string, tgs *nostr.Tags) {
 	t = append(t, PTag)
 	t = append(t, p)
 	*tgs = append(*tgs, t)
+}
+
+// }}}
+
+/*
+containsNsec1 {{{
+*/
+func containsNsec1(text string) bool {
+	pattern := `nsec1[a-zA-Z0-9]{58}`
+	re := regexp.MustCompile(pattern)
+	matches := re.FindAllString(text, -1)
+
+	for _, match := range matches {
+		alphanumericPart := match[5:]
+		if !regexp.MustCompile(`nsec1`).MatchString(alphanumericPart) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// }}}
+
+/*
+containsHsec1 {{{
+*/
+func containsHsec1(text string) bool {
+	pattern := `[a-zA-Z0-9]{64}`
+	re := regexp.MustCompile(pattern)
+	matches := re.FindAllString(text, -1)
+
+	for _, match := range matches {
+		if _, err := nip19.EncodePrivateKey(match); err == nil {
+			return true
+		}
+	}
+	return false
 }
 
 // }}}

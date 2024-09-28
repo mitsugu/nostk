@@ -52,7 +52,7 @@ func emojiReaction(args []string, cc confClass) error {
 		}
 	}
 
-	result := checkString(content);
+	result := checkString(content)
 	if result == false {
 		return errors.New("The argument contains text that is neither an emoji nor a custom emoji.")
 	}
