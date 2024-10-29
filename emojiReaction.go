@@ -127,7 +127,9 @@ func emojiReaction(args []string, cc confClass) error {
 checkString {{{
 */
 func checkString(s string) bool {
-	if utf8.RuneCountInString(s) == 1 {
+	if s == "+" || s == "-" {
+		return true
+	}else if utf8.RuneCountInString(s) == 1 {
 		r, _ := utf8.DecodeRuneInString(s)
 		return isEmoji(r)
 	} else {
@@ -159,7 +161,7 @@ func isEmoji(r rune) bool {
 // }}}
 
 /*
-isEmoji {{{
+isShortCode {{{
 */
 func isShortCode(s string) bool {
 	re := regexp.MustCompile(`^:.*:$`)

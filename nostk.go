@@ -137,6 +137,11 @@ func main() {
 			log.Fatal(err)
 			os.Exit(1)
 		}
+	case "pubRaw":
+		if err := publishRaw(os.Args, cc); err != nil {
+			log.Fatal(err)
+			os.Exit(1)
+		}
 	case "catHome":
 		if err := catHome(os.Args, cc); err != nil {
 			log.Fatal(err)

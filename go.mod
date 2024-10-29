@@ -1,11 +1,10 @@
 module github.com/mitsugu/nostk
 
-go 1.23.1
-
-toolchain go1.23.2
+go 1.23.2
 
 require (
-	github.com/nbd-wtf/go-nostr v0.38.3
+	github.com/mattn/go-jsonpointer v0.0.1
+	github.com/nbd-wtf/go-nostr v0.40.1
 	github.com/yosuke-furukawa/json5 v0.1.1
 )
 
