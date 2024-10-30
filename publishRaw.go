@@ -257,7 +257,7 @@ func checkTags(kind int, tgs nostr.Tags) error {
 	return nil
 }
 var chkTblMap = map[int][]string{
-	1: {"content-warning", "emoji", "p", "t"},
+	1: {"content-warning", "e", "emoji", "p", "t"},
 	10000: {"e", "p", "t", "word"},
 	10001: {"e"},
 	30315: {"d", "expiration", "r"},
