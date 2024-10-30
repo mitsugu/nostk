@@ -124,6 +124,7 @@ func mkEvent(pJson interface{}, cc confClass) (nostr.Event, error) {
 
 	switch kind {
 		case 1:		// publish kind 1 message
+		case 6:		// publish Reposts
 		case 10000:	// publish mute list
 		case 10001:	// publish Pinned notes
 		case 30315:	// publish status
@@ -257,7 +258,8 @@ func checkTags(kind int, tgs nostr.Tags) error {
 	return nil
 }
 var chkTblMap = map[int][]string{
-	1: {"content-warning", "e", "emoji", "p", "t"},
+	1: {"content-warning", "e", "emoji", "p", "q", "t"},
+	6: {"e", "p"},
 	10000: {"e", "p", "t", "word"},
 	10001: {"e"},
 	30315: {"d", "expiration", "r"},
