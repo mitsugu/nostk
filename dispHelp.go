@@ -36,9 +36,17 @@ func dispHelp() {
 				the note will be treated as a CONENT WARNING NOTE.
 		pubMessageTo <text message> <hex pubkey>:
 			Publish message to some user.
-			hex pubkey>:
+			hex pubkey :
 				Specify the user Pubkey to which the note will be sent.
 				This argument is required.
+		pubRaw <json data>:
+			Publish specified json string.
+			For power users who understand the source code.
+			json data :
+				json string with json5 specification according to NIP.
+				This argument is required.
+				See: https://spec.json5.org/
+				ex) "{\"kind\" : 1,\"content\" : \"test\",\"tags\":[[\"p\",\"c088_cut_off_05f9e6b5157b7d3416\"]]}"
 
 		catHome [number] [date time] :
 			Display home timeline.
