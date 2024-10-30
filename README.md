@@ -4,7 +4,7 @@ Implementing a CLI client to use [Nostr Protocol](https://github.com/nostr-proto
 
 ### Develop Environment
 * Ubuntu 23.04 and later
-* Go Language 1.23.0 and later
+* Go Language 1.23.2 and later
 
 ### Features
 * Initializing the nostk environment
@@ -19,12 +19,13 @@ Implementing a CLI client to use [Nostr Protocol](https://github.com/nostr-proto
 * Display your's note ([kind 1](https://github.com/nostr-protocol/nips/blob/master/01.md#kinds))
 * Publish Note ([kind 1](https://github.com/nostr-protocol/nips/blob/master/01.md#kinds))
 * Publish Note to some user (like Mension, [kind 1](https://github.com/nostr-protocol/nips/blob/master/01.md#kinds))
+* Publish json string (For power users who understand the source code.)
 * Content warning
 * Hash tags
 
 ### ToDo
-* Re-note
-* Message citations
+* <del>Re-note</del> : No plans to implement
+* <del>Message citations</del> : No plans to implement
 * Log viewer (Stoped development)
 * Any more
 
@@ -137,6 +138,11 @@ nostk pubMessage < (ps)
 nostk pubMessageTo <text message> <hex pubkey of send to user>
 ```
 
+#### Publish json
+``` bash
+nostk pubRaw <json text>
+```
+
 #### Display home timeline (kind 1, default uninclude content warning)
 ``` bash
 nostk catHome [number]
@@ -179,11 +185,12 @@ To display a content warning note, run the catEvent subcommand by specifying the
 " Usage
 "   1. Write content current buffer
 "   2. execute next command on command-line
-"      : NPublishMessage [reason]
+"      : NPM [reason]
 "        If reason is given as an argument,
 "          it will be published as a content warning note.
 "
-command! -nargs=? NPublishMessage call Pubmessage(<f-args>)
+command! -nargs=? NPM call Pubmessage(<f-args>)
+command! -nargs=? NPM call Pubmessage(<f-args>)
 function Pubmessage(...)
 	if a:0 >= 1
 		let l:buffer_contents = join(getline(1, '$'), "\n")
@@ -193,6 +200,21 @@ function Pubmessage(...)
 	else
 		w ! nostk pubMessage
 	end
+endfunction
+```
+
+``` vimscript
+" Usage
+"   1. Write json current buffer
+"   2. execute next command on command-line
+"      : NPR
+"
+command! NPR call Pubraw() function Pubraw()
+	let l:buffer_contents = join(getline(1, '$'), "\n")
+	let l:buffer_contents = substitute(l:buffer_contents, '"', '\\"', 'g')
+	let l:command = "nostk pubRaw \"" . l:buffer_contents . "\""
+	let l:command_output = system(l:command)
+	echo l:command_output
 endfunction
 ```
 
