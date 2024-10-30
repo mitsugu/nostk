@@ -9,6 +9,7 @@ import (
 	"github.com/yosuke-furukawa/json5/encoding/json5"
 	"log"
 	"runtime"
+	"strings"
 )
 
 /*
@@ -108,7 +109,7 @@ func publishRaw(args []string, cc confClass) error {
 // }}}
 
 /*
-mkEvent
+mkEvent {{{
 */
 func mkEvent(pJson interface{}, cc confClass) (nostr.Event, error) {
 	var ev nostr.Event
@@ -149,6 +150,9 @@ func mkEvent(pJson interface{}, cc confClass) (nostr.Event, error) {
 
 	if err := checkTags(kind, tgs); err != nil {
 		return ev, err
+	}
+	if ret := isIncludePrefix(tgs); ret == true {
+		return ev, errors.New("Include bech32 prefixes")
 	}
 
 	sk, err := cc.load(cc.ConfData.Filename.Hsec)
@@ -244,7 +248,7 @@ func addTagsFromJson(pJson interface{}, tgs *nostr.Tags) (error) {
 // }}}
 
 /*
-checkTags
+checkTags {{{
 */
 func checkTags(kind int, tgs nostr.Tags) error {
 	const tagNameIndex=0
@@ -286,3 +290,31 @@ func contains(slice []string, target string) bool {
 
 // }}}
 
+/*
+isIncludePrefix {{{
+*/
+type StringPrefix []string
+func (s StringPrefix) includes(target string) bool {
+	for _, v := range s {
+		if strings.Contains(target, v) {
+			return true
+		}
+	}
+	return false
+}
+func initializePrefix() StringPrefix {
+    return StringPrefix{"npub", "nesc", "note", "nprofile", "nevent", "naddr", "nrelay"}
+}
+func isIncludePrefix(tgs nostr.Tags) bool {
+	prefixs := initializePrefix()
+	for i := range tgs {
+		for j := range tgs[i] {
+			if ret := prefixs.includes(tgs[i][j]); ret == true {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// }}}
