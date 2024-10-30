@@ -7,7 +7,7 @@ import (
 	"github.com/mattn/go-jsonpointer"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/yosuke-furukawa/json5/encoding/json5"
-	//"log"
+	"log"
 	"runtime"
 )
 
@@ -64,7 +64,7 @@ func publishRaw(args []string, cc confClass) error {
 
 	var rl []string
 	if err := cc.getRelayList(&rl, writeFlag); err != nil {
-		return errors.New("Nothing relay list. Make a relay list.")
+		return err
 	}
 
 	sk, err := cc.load(cc.ConfData.Filename.Hsec)
@@ -124,6 +124,8 @@ func mkEvent(pJson interface{}, cc confClass) (nostr.Event, error) {
 
 	switch kind {
 		case 1:		// publish kind 1 message
+		case 10000:	// publish mute list
+		case 10001:	// publish Pinned notes
 		case 30315:	// publish status
 		default:
 			return ev, errors.New("not yet suppoted kind")
@@ -143,6 +145,10 @@ func mkEvent(pJson interface{}, cc confClass) (nostr.Event, error) {
 	setHashTags(tmpstr, &tgs)
 
 	addTagsFromJson(pJson, &tgs)
+
+	if err := checkTags(kind, tgs); err != nil {
+		return ev, err
+	}
 
 	sk, err := cc.load(cc.ConfData.Filename.Hsec)
 	if err != nil {
@@ -188,7 +194,7 @@ func getKind(pJson interface{}) (int, error) {
 // }}}
 
 /*
-getKind {{{
+getContent {{{
 */
 func getContent(pJson interface{}) (string, error) {
 	content, err  := jsonpointer.Get(pJson, "/content")
@@ -232,6 +238,48 @@ func addTagsFromJson(pJson interface{}, tgs *nostr.Tags) (error) {
 		}
 	}
 	return nil
+}
+
+// }}}
+
+/*
+checkTags
+*/
+func checkTags(kind int, tgs nostr.Tags) error {
+	const tagNameIndex=0
+	list := GetChkTblMap()
+	for i := range tgs {
+		if result := contains(list[kind], tgs[i][tagNameIndex]); result != true {
+			log.Printf("kind : %v, tagName : %v\n", kind, tgs[i][tagNameIndex])
+			return errors.New("Inclusion of invalid tag in specified kind")
+		}
+	}
+	return nil
+}
+var chkTblMap = map[int][]string{
+	1: {"content-warning", "emoji", "p", "t"},
+	10000: {"e", "p", "t", "word"},
+	10001: {"e"},
+	30315: {"d", "expiration", "r"},
+}
+func GetChkTblMap() map[int][]string {
+	newMap := make(map[int][]string)
+	for key, value := range chkTblMap {
+		newMap[key] = append([]string(nil), value...)
+	}
+	return newMap
+}
+func sliceToMap(slice []string) map[string]struct{} {
+	m := make(map[string]struct{})
+	for _, v := range slice {
+		m[v] = struct{}{}  // struct{}{} はゼロサイズでメモリ効率が良い
+	}
+	return m
+}
+func contains(slice []string, target string) bool {
+	m := sliceToMap(slice)
+	_, exists := m[target]
+	return exists
 }
 
 // }}}

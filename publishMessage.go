@@ -178,7 +178,7 @@ func setContentWarning(r string, tgs *nostr.Tags) {
 // }}}
 
 /*
-setContentWarning {{{
+setPerson {{{
 */
 func setPerson(p string, tgs *nostr.Tags) {
 	const PTag = "p"
