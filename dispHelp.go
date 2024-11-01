@@ -34,10 +34,11 @@ func dispHelp() {
 			content warning reason (optional) :
 				If this argument is specified,
 				the note will be treated as a CONENT WARNING NOTE.
-		pubMessageTo <text message> <hex pubkey>:
+		pubMessageTo <text message> <pubkey>:
 			Publish message to some user.
-			hex pubkey :
+			pubkey :
 				Specify the user Pubkey to which the note will be sent.
+				Specify epub or hex format for the public key.
 				This argument is required.
 		pubRaw <json data>:
 			Publish specified json string.
