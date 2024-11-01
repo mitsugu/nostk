@@ -55,9 +55,23 @@ func publishMessage(args []string, cc confClass) error {
 		return errors.New("Invalid pubMessage function call")
 	}
 
-	if containsNsec1(s) || containsHsec1(s) {
+	if containsNsec1(s) || containsHsec1(s) || containsNsec1(strReason) || containsHsec1(strReason) {
 		fmt.Println("STRONGEST CAUTION!! : POSTS CONTAINING PRIVATE KEYS!! YOUR POST HAS BEEN REJECTED!!")
 		return err
+	}
+
+	if 0< len(strPerson) && is64HexString(strPerson) == false {
+		if pref, err := getPrefixInString(strPerson); err == nil {
+			switch pref {
+			case "npub":
+				_, strPerson, err = toHex(strPerson)
+				if err != nil {
+					return err
+				}
+			default:
+				return errors.New("Invalid public key")
+			}
+		}
 	}
 
 	sk, err := cc.load(cc.ConfData.Filename.Hsec)
@@ -228,3 +242,4 @@ func containsHsec1(text string) bool {
 }
 
 // }}}
+

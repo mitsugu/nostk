@@ -151,7 +151,7 @@ func mkEvent(pJson interface{}, cc confClass) (nostr.Event, error) {
 	if err := checkTags(kind, tgs); err != nil {
 		return ev, err
 	}
-	if ret := isIncludePrefix(tgs); ret == true {
+	if ret := hasPrefixInTags(tgs); ret == true {
 		return ev, errors.New("Include bech32 prefixes")
 	}
 
@@ -262,7 +262,7 @@ func checkTags(kind int, tgs nostr.Tags) error {
 	return nil
 }
 var chkTblMap = map[int][]string{
-	1: {"content-warning", "e", "emoji", "p", "q", "t"},
+	1: {"content-warning", "client", "e", "emoji", "p", "q", "r", "t"},
 	6: {"e", "p"},
 	10000: {"e", "p", "t", "word"},
 	10001: {"e"},
@@ -291,7 +291,7 @@ func contains(slice []string, target string) bool {
 // }}}
 
 /*
-isIncludePrefix {{{
+hasPrefixInTags {{{
 */
 type StringPrefix []string
 func (s StringPrefix) includes(target string) bool {
@@ -302,11 +302,11 @@ func (s StringPrefix) includes(target string) bool {
 	}
 	return false
 }
-func initializePrefix() StringPrefix {
+func NewStringPrefix() StringPrefix {
     return StringPrefix{"npub", "nesc", "note", "nprofile", "nevent", "naddr", "nrelay"}
 }
-func isIncludePrefix(tgs nostr.Tags) bool {
-	prefixs := initializePrefix()
+func hasPrefixInTags(tgs nostr.Tags) bool {
+	prefixs := NewStringPrefix()
 	for i := range tgs {
 		for j := range tgs[i] {
 			if ret := prefixs.includes(tgs[i][j]); ret == true {
@@ -318,3 +318,4 @@ func isIncludePrefix(tgs nostr.Tags) bool {
 }
 
 // }}}
+
