@@ -1,7 +1,7 @@
 package main
 
 import (
-	//"log"
+//"log"
 )
 
 /*
@@ -9,10 +9,9 @@ publishMessageTo {{{
 */
 func publishMessageTo(args []string, cc confClass) error {
 	if err := publishMessage(args, cc); err != nil {
-		return(err)
+		return (err)
 	}
 	return nil
 }
 
 // }}}
-

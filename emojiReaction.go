@@ -45,7 +45,7 @@ func emojiReaction(args []string, cc confClass) error {
 		switch i {
 		case 2: // event_id
 			event_id = args[i]
-			if 0< len(event_id) && is64HexString(event_id) == false {
+			if 0 < len(event_id) && is64HexString(event_id) == false {
 				if pref, err := getPrefixInString(event_id); err == nil {
 					switch pref {
 					case "note":
@@ -67,7 +67,7 @@ func emojiReaction(args []string, cc confClass) error {
 			}
 		case 3: // public_key
 			public_key = args[i]
-			if 0< len(public_key) && is64HexString(public_key) == false {
+			if 0 < len(public_key) && is64HexString(public_key) == false {
 				if pref, tmpPubkey, err := toHex(public_key); err != nil || pref != "npub" {
 					return err
 				} else {
@@ -158,7 +158,7 @@ checkString {{{
 func checkString(s string) bool {
 	if s == "+" || s == "-" {
 		return true
-	}else if utf8.RuneCountInString(s) == 1 {
+	} else if utf8.RuneCountInString(s) == 1 {
 		r, _ := utf8.DecodeRuneInString(s)
 		return isEmoji(r)
 	} else {

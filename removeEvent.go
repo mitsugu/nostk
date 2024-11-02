@@ -33,10 +33,33 @@ func removeEvent(args []string, cc confClass) error {
 		switch i {
 		case 2: // event_id
 			event_id = args[i]
+			if 0 < len(event_id) && is64HexString(event_id) == false {
+				if pref, err := getPrefixInString(event_id); err == nil {
+					switch pref {
+					case "note":
+						if _, tmpEventId, err := toHex(event_id); err != nil {
+							return err
+						} else {
+							event_id = tmpEventId.(string)
+						}
+					case "nevent":
+						if _, tmpEventId, err := toHex(event_id); err != nil {
+							return err
+						} else {
+							event_id = tmpEventId.(nostr.EventPointer).ID
+						}
+					default:
+						return errors.New(fmt.Sprintf("Invalid id starting with %v", pref))
+					}
+				}
+			}
 		case 3: // kind
 			kind = args[i]
 		case 4: // content
 			content = args[i]
+			if containsNsec1(content) || containsHsec1(content) {
+				return errors.New(fmt.Sprintf("STRONGEST CAUTION!! : POSTS CONTAINING PRIVATE KEYS!! YOUR POST HAS BEEN REJECTED!!"))
+			}
 		}
 	}
 

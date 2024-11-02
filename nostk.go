@@ -491,7 +491,7 @@ func is64HexString(s string) bool {
 /*
 getPrefixInString {{{
 */
-func getPrefixInString(str string) (string, error){
+func getPrefixInString(str string) (string, error) {
 	pref, _, err := nip19.Decode(str)
 	if err != nil {
 		return "", err

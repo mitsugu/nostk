@@ -68,104 +68,36 @@ IF config.json NOT FOUND IN .nostk DIRECTORY, EXECUTE THE FOLLOWING.
 \* Unless there is a special reason, it is recommended to use a web app such as [nostter](https://nostter.app/home) instead of nostk.
 
 ### Usage
-#### Display help documanets
-``` bash
-nostk help
-
-nostk -h
-
-nostk --help
-
-nostk
 ```
+nostk <sub-command> [param...]
+	init:		Initializing the nostk environment
+	genkey:		Create Private Key and Public Key
+	editRelays:	Edit relay list.
+	editContacts:	Edit your contact list.
+	editEmoji:	Edit custom emoji list.
 
-#### Init nostk
-``` bash
-nostk init
-```
+	pubRelays:	Publish relay list.
+	editProfile:	Edit your profile.
+	pubProfile:	Publish your profile.
 
-#### Ganerate Key Pair
-``` bash
-nostk genkey
-```
+	pubMessage <text message> [reason for content warning]:
+			Publish text message to relays.
+	pubMessageTo <text message> <pubkey>:
+			Publish text message to a some user.
+	pubRaw <raw data>:
+			Publish raw data in json format.
+			format: See: https://spec.json5.org/
+			ex) "{\"kind\" : 1,\"content\" : \"test\",\"tags\":[[\"p\",\"c088_cut_off_05f9e6b5157b7d3416\"]]}"
 
-#### Edit contact list
-``` bash
-nostk editContacts
-```
+	catHome [number]: Display home timeline.
+	catNSFW [number]: Display home timeline include content warning contents.
+	catSelf [number]: Display your posts.
+	catEvent <ID>:	  Display the event specified by Event ID.
 
-#### Edit custom emoji
-``` bash
-nostk editEmoji
-```
-
-#### Edit relay list
-``` bash
-nostk editRelays
-```
-
-#### Publish relay list
-``` bash
-nostk pubRelays
-```
-
-#### Edit profile
-``` bash
-nostk editProfile
-```
-
-#### Publish profile
-``` bash
-nostk pubProfile
-```
-
-#### Publish message
-``` bash
-nostk pubMessage <text message> [reason of content warning]
-
-nostk pubMessage < file
-
-(ps) | nostk pubMessage
-```
-
-#### Publish message to
-``` bash
-nostk pubMessageTo <text message> <pubkey>
-```
-
-#### Publish raw data
-``` bash
-nostk pubRaw <raw string>
-```
-
-#### Display home timeline (kind 1, default uninclude content warning)
-``` bash
-nostk catHome [number]
-```
-
-#### Display MSFW timeline (kind 1, default include content warning)
-``` bash
-nostk catNSFW [number]
-```
-
-#### Display your's note (kind 1)
-``` bash
-nostk catSelf [number]
-```
-
-#### Display specified event
-``` bash
-nostk catEvent <Hex event id>
-```
-
-#### Remove specified event (Test implementation)
-``` bash
-nostk removeEvent <Hex event id> [reason]
-```
-
-#### Custom emoji reaction (Test implementation)
-``` bash
-nostk emojiReaction <id> <pubkey> <kind> <reaction>
+	emojiReaction <ID> <pubkey> <kind> <reaction>:
+			React to specified events.
+	removeEvent <ID> <kind> [reason]:
+			Remove the event specified by Event ID or Note ID.
 ```
 
 ### About content warning note

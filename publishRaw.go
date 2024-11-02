@@ -14,6 +14,7 @@ import (
 
 /*
 publishRaw
+
 	Data format example:
 		{
 			"kind": kind string,
@@ -78,13 +79,13 @@ func publishRaw(args []string, cc confClass) error {
 	ev.Sign(sk)
 
 	/*
-	if 0 < len(strReason) {
-		setContentWarning(strReason, &tgs)
-	}
+		if 0 < len(strReason) {
+			setContentWarning(strReason, &tgs)
+		}
 
-	if 0 < len(strPerson) {
-		setPerson(strPerson, &tgs)
-	}
+		if 0 < len(strPerson) {
+			setPerson(strPerson, &tgs)
+		}
 	*/
 
 	// publish the event to two relays
@@ -124,13 +125,13 @@ func mkEvent(pJson interface{}, cc confClass) (nostr.Event, error) {
 	}
 
 	switch kind {
-		case 1:		// publish kind 1 message
-		case 6:		// publish Reposts
-		case 10000:	// publish mute list
-		case 10001:	// publish Pinned notes
-		case 30315:	// publish status
-		default:
-			return ev, errors.New("not yet suppoted kind")
+	case 1: // publish kind 1 message
+	case 6: // publish Reposts
+	case 10000: // publish mute list
+	case 10001: // publish Pinned notes
+	case 30315: // publish status
+	default:
+		return ev, errors.New("not yet suppoted kind")
 	}
 
 	tgs := nostr.Tags{}
@@ -166,11 +167,11 @@ func mkEvent(pJson interface{}, cc confClass) (nostr.Event, error) {
 	}
 
 	ev = nostr.Event{
-		PubKey:		pk,
-		CreatedAt:	nostr.Now(),
-		Kind:		kind,
-		Tags:		tgs,
-		Content:	content,
+		PubKey:    pk,
+		CreatedAt: nostr.Now(),
+		Kind:      kind,
+		Tags:      tgs,
+		Content:   content,
 	}
 
 	return ev, nil
@@ -182,17 +183,17 @@ func mkEvent(pJson interface{}, cc confClass) (nostr.Event, error) {
 getKind {{{
 */
 func getKind(pJson interface{}) (int, error) {
-	kind, err  := jsonpointer.Get(pJson, "/kind")
+	kind, err := jsonpointer.Get(pJson, "/kind")
 	if err != nil {
 		return -1, err
 	}
 
 	var intKind int
 	if kindValue, ok := kind.(float64); ok {
-        intKind = int(kindValue)
-    } else {
-        return -1, errors.New("Failed to convert 'kind' value to int64")
-    }
+		intKind = int(kindValue)
+	} else {
+		return -1, errors.New("Failed to convert 'kind' value to int64")
+	}
 	return intKind, nil
 }
 
@@ -202,17 +203,17 @@ func getKind(pJson interface{}) (int, error) {
 getContent {{{
 */
 func getContent(pJson interface{}) (string, error) {
-	content, err  := jsonpointer.Get(pJson, "/content")
+	content, err := jsonpointer.Get(pJson, "/content")
 	if err != nil {
 		return "", err
 	}
 
 	var strContent string
 	if contentValue, ok := content.(string); ok {
-        strContent= string(contentValue)
-    } else {
-        return "", errors.New("Failed to convert 'kind' value to int64")
-    }
+		strContent = string(contentValue)
+	} else {
+		return "", errors.New("Failed to convert 'kind' value to int64")
+	}
 	if containsNsec1(strContent) || containsHsec1(strContent) {
 		return "", errors.New("STRONGEST CAUTION!! : POSTS CONTAINING PRIVATE KEYS!! YOUR POST HAS BEEN REJECTED!!")
 	}
@@ -224,7 +225,7 @@ func getContent(pJson interface{}) (string, error) {
 /*
 addTagsFromJson {{{
 */
-func addTagsFromJson(pJson interface{}, tgs *nostr.Tags) (error) {
+func addTagsFromJson(pJson interface{}, tgs *nostr.Tags) error {
 	jsonMap, ok := pJson.(map[string]interface{})
 	if !ok {
 		return errors.New("pJson is not a valid map")
@@ -251,7 +252,7 @@ func addTagsFromJson(pJson interface{}, tgs *nostr.Tags) (error) {
 checkTags {{{
 */
 func checkTags(kind int, tgs nostr.Tags) error {
-	const tagNameIndex=0
+	const tagNameIndex = 0
 	list := GetChkTblMap()
 	for i := range tgs {
 		if result := contains(list[kind], tgs[i][tagNameIndex]); result != true {
@@ -261,13 +262,15 @@ func checkTags(kind int, tgs nostr.Tags) error {
 	}
 	return nil
 }
+
 var chkTblMap = map[int][]string{
-	1: {"content-warning", "client", "e", "emoji", "p", "q", "r", "t"},
-	6: {"e", "p"},
+	1:     {"content-warning", "client", "e", "emoji", "p", "q", "r", "t"},
+	6:     {"e", "p"},
 	10000: {"e", "p", "t", "word"},
 	10001: {"e"},
 	30315: {"d", "expiration", "r"},
 }
+
 func GetChkTblMap() map[int][]string {
 	newMap := make(map[int][]string)
 	for key, value := range chkTblMap {
@@ -278,7 +281,7 @@ func GetChkTblMap() map[int][]string {
 func sliceToMap(slice []string) map[string]struct{} {
 	m := make(map[string]struct{})
 	for _, v := range slice {
-		m[v] = struct{}{}  // struct{}{} はゼロサイズでメモリ効率が良い
+		m[v] = struct{}{} // struct{}{} はゼロサイズでメモリ効率が良い
 	}
 	return m
 }
@@ -294,6 +297,7 @@ func contains(slice []string, target string) bool {
 hasPrefixInTags {{{
 */
 type StringPrefix []string
+
 func (s StringPrefix) includes(target string) bool {
 	for _, v := range s {
 		if strings.Contains(target, v) {
@@ -303,7 +307,7 @@ func (s StringPrefix) includes(target string) bool {
 	return false
 }
 func NewStringPrefix() StringPrefix {
-    return StringPrefix{"npub", "nesc", "note", "nprofile", "nevent", "naddr", "nrelay"}
+	return StringPrefix{"npub", "nesc", "note", "nprofile", "nevent", "naddr", "nrelay"}
 }
 func hasPrefixInTags(tgs nostr.Tags) bool {
 	prefixs := NewStringPrefix()
@@ -318,4 +322,3 @@ func hasPrefixInTags(tgs nostr.Tags) bool {
 }
 
 // }}}
-

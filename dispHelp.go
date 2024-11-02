@@ -30,28 +30,28 @@ func dispHelp() {
 			Publish your profile.
 
 		pubMessage <text message> [reason for content warning]:
-			Publish message to relays.
+			Publish text message to relays.
 		pubMessageTo <text message> <pubkey>:
-			Publish message to a some user.
+			Publish text message to a some user.
 		pubRaw <raw data>:
 			Publish raw data in json format.
 			format:
 				See: https://spec.json5.org/
 				ex) "{\"kind\" : 1,\"content\" : \"test\",\"tags\":[[\"p\",\"c088_cut_off_05f9e6b5157b7d3416\"]]}"
 
-		emojiReaction <id> <pubkey> <kind> <reaction>:
-
-		catHome [number] [date time] :
+		catHome [number]:
 			Display home timeline.
-		catNSFW [number] [date time] :
+		catNSFW [number]:
 			Display home timeline include content warning contents.
-		catSelf [number] [date time] :
+		catSelf [number]:
 			Display your posts.
-		catEvent <hex type Event id> :
-			Display the event specified by Event Id.
+		catEvent <ID> :
+			Display the event specified by Event ID.
 
-		removeEvent <hex type Event id> <kind> [reason] :
-			Remove the event specified by Event Id.
+		emojiReaction <ID> <pubkey> <kind> <reaction>:
+			React to specified events.
+		removeEvent <ID> <kind> [reason]:
+			Remove the event specified by Event ID or Note ID.
 `
 	fmt.Fprintf(os.Stderr, "%s\n", usageTxt)
 }

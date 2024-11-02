@@ -56,11 +56,10 @@ func publishMessage(args []string, cc confClass) error {
 	}
 
 	if containsNsec1(s) || containsHsec1(s) || containsNsec1(strReason) || containsHsec1(strReason) {
-		fmt.Println("STRONGEST CAUTION!! : POSTS CONTAINING PRIVATE KEYS!! YOUR POST HAS BEEN REJECTED!!")
-		return err
+		return errors.New(fmt.Sprintf("STRONGEST CAUTION!! : POSTS CONTAINING PRIVATE KEYS!! YOUR POST HAS BEEN REJECTED!!"))
 	}
 
-	if 0< len(strPerson) && is64HexString(strPerson) == false {
+	if 0 < len(strPerson) && is64HexString(strPerson) == false {
 		if pref, err := getPrefixInString(strPerson); err == nil {
 			switch pref {
 			case "npub":
@@ -243,4 +242,3 @@ func containsHsec1(text string) bool {
 }
 
 // }}}
-
