@@ -64,9 +64,10 @@ func publishMessage(args []string, cc confClass) error {
 		if pref, err := getPrefixInString(strPerson); err == nil {
 			switch pref {
 			case "npub":
-				_, strPerson, err = toHex(strPerson)
-				if err != nil {
+				if _, tmpPerson, err := toHex(strPerson); err != nil {
 					return err
+				} else {
+					strPerson = tmpPerson.(string)
 				}
 			default:
 				return errors.New("Invalid public key")

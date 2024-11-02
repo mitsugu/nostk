@@ -19,15 +19,10 @@ Implementing a CLI client to use [Nostr Protocol](https://github.com/nostr-proto
 * Display your's note ([kind 1](https://github.com/nostr-protocol/nips/blob/master/01.md#kinds))
 * Publish Note ([kind 1](https://github.com/nostr-protocol/nips/blob/master/01.md#kinds))
 * Publish Note to some user (like Mension, [kind 1](https://github.com/nostr-protocol/nips/blob/master/01.md#kinds))
-* Publish json string (For power users who understand the source code.)
+* Publish raw data (For power users who understand NIPS and the source code.)
 * Content warning
 * Hash tags
-
-### ToDo
-* <del>Re-note</del> : No plans to implement
-* <del>Message citations</del> : No plans to implement
-* Log viewer (Stoped development)
-* Any more
+* Publish reaction
 
 ### Requirements
 * [nbd-wtf / go-nostr](https://github.com/nbd-wtf/go-nostr)
@@ -128,19 +123,19 @@ nostk pubProfile
 ``` bash
 nostk pubMessage <text message> [reason of content warning]
 
-nostk pubMessage < (ps)
+nostk pubMessage < file
 
 (ps) | nostk pubMessage
 ```
 
 #### Publish message to
 ``` bash
-nostk pubMessageTo <text message> <hex pubkey of send to user>
+nostk pubMessageTo <text message> <pubkey>
 ```
 
-#### Publish json
+#### Publish raw data
 ``` bash
-nostk pubRaw <json text>
+nostk pubRaw <raw string>
 ```
 
 #### Display home timeline (kind 1, default uninclude content warning)
@@ -170,7 +165,7 @@ nostk removeEvent <Hex event id> [reason]
 
 #### Custom emoji reaction (Test implementation)
 ``` bash
-nostk emojiReaction <Hex event id> <Hex pubkey> <short code of custom emoji>
+nostk emojiReaction <id> <pubkey> <kind> <reaction>
 ```
 
 ### About content warning note

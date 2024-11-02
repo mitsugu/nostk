@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nbd-wtf/go-nostr"
+	//"log"
 	"regexp"
 	"unicode"
 	"unicode/utf8"
@@ -32,6 +33,7 @@ func emojiReaction(args []string, cc confClass) error {
 	var public_key string
 	var kind string
 	var content string
+	var err error
 
 	if len(args) < 6 {
 		return errors.New("Wrong number of parameters")
@@ -43,8 +45,35 @@ func emojiReaction(args []string, cc confClass) error {
 		switch i {
 		case 2: // event_id
 			event_id = args[i]
+			if 0< len(event_id) && is64HexString(event_id) == false {
+				if pref, err := getPrefixInString(event_id); err == nil {
+					switch pref {
+					case "note":
+						if _, tmpEventId, err := toHex(event_id); err != nil {
+							return err
+						} else {
+							event_id = tmpEventId.(string)
+						}
+					case "nevent":
+						if _, tmpEventId, err := toHex(event_id); err != nil {
+							return err
+						} else {
+							event_id = tmpEventId.(nostr.EventPointer).ID
+						}
+					default:
+						return errors.New(fmt.Sprintf("Invalid id starting with %v", pref))
+					}
+				}
+			}
 		case 3: // public_key
 			public_key = args[i]
+			if 0< len(public_key) && is64HexString(public_key) == false {
+				if pref, tmpPubkey, err := toHex(public_key); err != nil || pref != "npub" {
+					return err
+				} else {
+					public_key = tmpPubkey.(string)
+				}
+			}
 		case 4: // content
 			kind = args[i]
 		case 5: // content
