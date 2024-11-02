@@ -18,6 +18,26 @@ func catEvent(args []string, cc confClass) error {
 		return errors.New("invalid argument")
 	}
 	eventId := args[2]
+	if 0 < len(eventId) && is64HexString(eventId) == false {
+		if pref, err := getPrefixInString(eventId); err == nil {
+			switch pref {
+			case "note":
+				if _, tmpEventId, err := toHex(eventId); err != nil {
+					return err
+				} else {
+					eventId = tmpEventId.(string)
+				}
+			case "nevent":
+				if _, tmpEventId, err := toHex(eventId); err != nil {
+					return err
+				} else {
+					eventId = tmpEventId.(nostr.EventPointer).ID
+				}
+			default:
+				return errors.New(fmt.Sprintf("Invalid id starting with %v", pref))
+			}
+		}
+	}
 
 	c := cc.getConf()
 	num := 1
