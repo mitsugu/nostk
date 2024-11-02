@@ -92,7 +92,7 @@ nostk <sub-command> [param...]
 	catHome [number]: Display home timeline.
 	catNSFW [number]: Display home timeline include content warning contents.
 	catSelf [number]: Display your posts.
-	catEvent <ID>:	  Display the event specified by Event ID.
+	catEvent <ID>:	  Display the event specified by Event ID or Note ID.
 
 	emojiReaction <ID> <pubkey> <kind> <reaction>:
 			React to specified events.
