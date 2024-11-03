@@ -78,16 +78,6 @@ func publishRaw(args []string, cc confClass) error {
 	// calling Sign sets the event ID field and the event Sig field
 	ev.Sign(sk)
 
-	/*
-		if 0 < len(strReason) {
-			setContentWarning(strReason, &tgs)
-		}
-
-		if 0 < len(strPerson) {
-			setPerson(strPerson, &tgs)
-		}
-	*/
-
 	// publish the event to two relays
 	ctx := context.Background()
 	for _, url := range rl {
@@ -110,7 +100,7 @@ func publishRaw(args []string, cc confClass) error {
 // }}}
 
 /*
-mkEvent {{{
+mkEvent
 */
 func mkEvent(pJson interface{}, cc confClass) (nostr.Event, error) {
 	var ev nostr.Event
@@ -264,11 +254,11 @@ func checkTags(kind int, tgs nostr.Tags) error {
 }
 
 var chkTblMap = map[int][]string{
-	1:     {"content-warning", "client", "e", "emoji", "p", "q", "r", "t"},
+	1:     {"content-warning", "client", "e", "emoji", "expiration", "p", "q", "r", "t"},
 	6:     {"e", "p"},
 	10000: {"e", "p", "t", "word"},
 	10001: {"e"},
-	30315: {"d", "expiration", "r"},
+	30315: {"d", "emoji", "expiration", "r"},
 }
 
 func GetChkTblMap() map[int][]string {
@@ -319,6 +309,34 @@ func hasPrefixInTags(tgs nostr.Tags) bool {
 		}
 	}
 	return false
+}
+
+// }}}
+
+/*
+ */
+var modifyBech32KindTblMap = map[int][]string{
+	1:     {"e", "p", "q"},
+	6:     {"e", "p"},
+	10000: {"e", "p"},
+	10001: {"e"},
+}
+var modifyBech32TagsTblMap = map[string][]int{
+	"e": {1, 4}, // 1:event_id (note_id),	4:pubkey
+	"p": {1},    // 1:pubkey
+	"q": {1, 3}, // 1:event_id (note_id),	3:pubkey
+}
+
+// }}}
+
+/*
+Error check function table {{{
+IMPLEMENTED IN A FUTURE MAJOR VERSION
+*/
+var defChkTblMap = map[string]map[int]string{
+	"content-warning": {1: "checkSeckey"},
+	"client":          {1: "checkEmpty", 2: "noncheck", 3: "noncheck"},
+	"e":               {1: "checkEventId", 2: "noncheck", 3: "checkMarker", 4: "checkPubkey"},
 }
 
 // }}}

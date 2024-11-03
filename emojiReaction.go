@@ -68,8 +68,10 @@ func emojiReaction(args []string, cc confClass) error {
 		case 3: // public_key
 			public_key = args[i]
 			if 0 < len(public_key) && is64HexString(public_key) == false {
-				if pref, tmpPubkey, err := toHex(public_key); err != nil || pref != "npub" {
+				if pref, tmpPubkey, err := toHex(public_key); err != nil {
 					return err
+				} else if pref != "npub" {
+					return errors.New(fmt.Sprintf("Invalid Pubkey %v", public_key))
 				} else {
 					public_key = tmpPubkey.(string)
 				}
