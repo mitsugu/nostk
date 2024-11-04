@@ -489,6 +489,16 @@ func is64HexString(s string) bool {
 // }}}
 
 /*
+isHexString {{{
+*/
+func isHexString(s string) bool {
+	match, _ := regexp.MatchString("^[a-fA-F0-9]+$", s)
+	return match
+}
+
+// }}}
+
+/*
 getPrefixInString {{{
 */
 func getPrefixInString(str string) (string, error) {

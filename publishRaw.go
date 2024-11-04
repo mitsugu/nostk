@@ -12,6 +12,10 @@ import (
 	"strings"
 )
 
+const (
+	lengthHexData = 64
+)
+
 /*
 publishRaw
 
@@ -100,7 +104,7 @@ func publishRaw(args []string, cc confClass) error {
 // }}}
 
 /*
-mkEvent
+mkEvent {{{
 */
 func mkEvent(pJson interface{}, cc confClass) (nostr.Event, error) {
 	var ev nostr.Event
@@ -142,8 +146,14 @@ func mkEvent(pJson interface{}, cc confClass) (nostr.Event, error) {
 	if err := checkTags(kind, tgs); err != nil {
 		return ev, err
 	}
-	if ret := hasPrefixInTags(tgs); ret == true {
-		return ev, errors.New("Include bech32 prefixes")
+	/*
+		if ret := hasPrefixInTags(tgs); ret == true {
+			return ev, errors.New("Include bech32 prefixes")
+		}
+	*/
+
+	if err := replaceBech32(kind, tgs); err != nil {
+		return ev, err
 	}
 
 	sk, err := cc.load(cc.ConfData.Filename.Hsec)
@@ -296,6 +306,14 @@ func (s StringPrefix) includes(target string) bool {
 	}
 	return false
 }
+func (s StringPrefix) hasPrefix(target string) bool {
+	for _, prefix := range s {
+		if strings.HasPrefix(target, prefix) {
+			return true
+		}
+	}
+	return false
+}
 func NewStringPrefix() StringPrefix {
 	return StringPrefix{"npub", "nesc", "note", "nprofile", "nevent", "naddr", "nrelay"}
 }
@@ -314,17 +332,109 @@ func hasPrefixInTags(tgs nostr.Tags) bool {
 // }}}
 
 /*
- */
-var modifyBech32KindTblMap = map[int][]string{
-	1:     {"e", "p", "q"},
-	6:     {"e", "p"},
-	10000: {"e", "p"},
-	10001: {"e"},
+replaceBech32 {{{
+*/
+func replaceBech32(kind int, tgs nostr.Tags) error {
+	list := NewModifyBech32TagsList()
+	bechList := NewModifyBech32List()
+	const indexTagName = 0
+	for i := range tgs {
+		if res := list.has(kind, tgs[i][indexTagName]); res == true { // Check for presence of tag
+			if err := bechList.convert(tgs[i]); err != nil { // Decoding Bech32 format ID or key or more
+				return err
+			}
+		}
+	}
+	return nil
 }
-var modifyBech32TagsTblMap = map[string][]int{
-	"e": {1, 4}, // 1:event_id (note_id),	4:pubkey
-	"p": {1},    // 1:pubkey
-	"q": {1, 3}, // 1:event_id (note_id),	3:pubkey
+
+// Checker for target tag
+//
+//	Maintains a tag name list corresponding to kind and
+//	uses the list to determine whether it is a target tag
+type modifyBech32TagsTblMap map[int][]string
+
+func NewModifyBech32TagsList() modifyBech32TagsTblMap {
+	return modifyBech32TagsTblMap{
+		1:     {"e", "p", "q"},
+		6:     {"e", "p"},
+		10000: {"e", "p"},
+		10001: {"e"},
+	}
+}
+
+// function has
+//
+//	map's member method of modifyBech32TagsTblMap
+//	Returns a bool value indicating whether data corresponding
+//	to the kind and tag name exists in modifyBech32TagsTblMap.
+func (r modifyBech32TagsTblMap) has(kind int, tagName string) bool {
+	tags, exists := r[kind]
+	if !exists {
+		return false
+	}
+
+	for _, tag := range tags {
+		if tag == tagName {
+			return true
+		}
+	}
+	return false
+}
+
+// Bech32 converter
+type modifyBech32TblMap map[string]map[int][]string
+
+func NewModifyBech32List() modifyBech32TblMap {
+	return modifyBech32TblMap{
+		"e": {
+			1: {"nevent", "note"},
+			4: {"npub"},
+		},
+		"p": {
+			1: {"npub"},
+		},
+		"q": {
+			1: {"nevent", "note"},
+			3: {"npub"},
+		},
+	}
+}
+func (r modifyBech32TblMap) exists(tagName string, pref string) bool {
+	if innerMap, ok := r[tagName]; ok {
+		for _, values := range innerMap {
+			for _, item := range values {
+				if item == pref {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+func (r modifyBech32TblMap) convert(tag nostr.Tag) error {
+	prefixs := NewStringPrefix()
+	for i := range tag {
+		if 0 == i { // skip tag name
+			continue
+		}
+		if isHexString(tag[i]) == true { // hex ID or key
+			if lengthHexData != len(tag[i]) {
+				return errors.New("Detecting invalid hexadecimal data in tags")
+			} else {
+				continue
+			}
+		}
+		if ret := prefixs.hasPrefix(tag[i]); ret != true { // check prefix
+			continue
+		}
+		if _, tmpData, err := toHex(tag[i]); err != nil { // convert hex string for Besh32 ID or key
+			return err
+		} else {
+			tag[i], _ = tmpData.(string)
+		}
+	}
+	return nil
 }
 
 // }}}
