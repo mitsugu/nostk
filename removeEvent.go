@@ -57,7 +57,7 @@ func removeEvent(args []string, cc confClass) error {
 			kind = args[i]
 		case 4: // content
 			content = args[i]
-			if containsNsec1(content) || containsHsec1(content) {
+			if containsNsec1(content) {
 				return errors.New(fmt.Sprintf("STRONGEST CAUTION!! : POSTS CONTAINING PRIVATE KEYS!! YOUR POST HAS BEEN REJECTED!!"))
 			}
 		}

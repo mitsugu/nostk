@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nbd-wtf/go-nostr"
-	"github.com/nbd-wtf/go-nostr/nip19"
+	//"github.com/nbd-wtf/go-nostr/nip19"
 	//"log"
 	"regexp"
 	"runtime"
@@ -55,7 +55,12 @@ func publishMessage(args []string, cc confClass) error {
 		return errors.New("Invalid pubMessage function call")
 	}
 
-	if containsNsec1(s) || containsHsec1(s) || containsNsec1(strReason) || containsHsec1(strReason) {
+	// Temporary workaround for false positives
+	// in hexadecimal format pubkey
+	// Although I am thinking of countermeasures,
+	// it seems difficult to solve the problem.
+	//if containsNsec1(s) || containsHsec1(s) || containsNsec1(strReason) || containsHsec1(strReason) {
+	if containsNsec1(s)  || containsNsec1(strReason)  {
 		return errors.New(fmt.Sprintf("STRONGEST CAUTION!! : POSTS CONTAINING PRIVATE KEYS!! YOUR POST HAS BEEN REJECTED!!"))
 	}
 
@@ -228,6 +233,7 @@ func containsNsec1(text string) bool {
 /*
 containsHsec1 {{{
 */
+/*
 func containsHsec1(text string) bool {
 	pattern := `[a-zA-Z0-9]{64}`
 	re := regexp.MustCompile(pattern)
@@ -240,5 +246,6 @@ func containsHsec1(text string) bool {
 	}
 	return false
 }
+*/
 
 // }}}

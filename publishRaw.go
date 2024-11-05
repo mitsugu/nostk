@@ -214,7 +214,7 @@ func getContent(pJson interface{}) (string, error) {
 	} else {
 		return "", errors.New("Failed to convert 'kind' value to int64")
 	}
-	if containsNsec1(strContent) || containsHsec1(strContent) {
+	if containsNsec1(strContent) {
 		return "", errors.New("STRONGEST CAUTION!! : POSTS CONTAINING PRIVATE KEYS!! YOUR POST HAS BEEN REJECTED!!")
 	}
 	return strContent, nil
