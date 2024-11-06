@@ -134,7 +134,7 @@ func main() {
 			os.Exit(1)
 		}
 	case "pubMessageTo":
-		if err := publishMessageTo(os.Args, cc); err != nil {
+		if err := publishMessage(os.Args, cc); err != nil {
 			log.Fatal(err)
 			os.Exit(1)
 		}
@@ -508,3 +508,6 @@ func getPrefixInString(str string) (string, error) {
 	}
 	return pref, nil
 }
+
+// }}}
+

@@ -6,53 +6,45 @@ import (
 	"fmt"
 	"github.com/nbd-wtf/go-nostr"
 	//"github.com/nbd-wtf/go-nostr/nip19"
+	"github.com/yosuke-furukawa/json5/encoding/json5"
 	//"log"
 	"regexp"
-	"runtime"
+	//"runtime"
 )
 
 const (
 	Main         = "main.main"
 	PubMessageTo = "main.publishMessageTo"
+	tagName		 = 0
+	reason		 = 1
+	person		 = 1
 )
 
 /*
-publishMessage {{{
+publishMessage
 */
 func publishMessage(args []string, cc confClass) error {
-	var s string    // content string
-	strReason := "" // content warning reason
-	strPerson := "" // hpub of person
-	var err error
-	pc, _, _, _ := runtime.Caller(1)
-	fn := runtime.FuncForPC(pc)
-	if fn.Name() == Main {
-		switch len(args) {
-		case 2:
-			// Receive content from standard input
-			s, err = readStdIn()
-			if err != nil {
-				return errors.New("Not set text message")
-			}
-		case 3:
-			// Receive content from arguments
-			s = args[2]
-		case 4:
-			// Receive content and content warning reason from arguments
-			s = args[2]
-			strReason = args[3]
-		default:
-			return errors.New("Invalid number of arguments")
+	dataRawArg := RawArg{}
+	switch len(args) {
+	case 0:
+		return errors.New("Not enough arguments")
+	case 1:
+		// Receive content from standard input
+		tmpContent, err := readStdIn()
+		if err != nil {
+			return errors.New("Not set text message")
 		}
-	} else if fn.Name() == PubMessageTo {
-		if len(args) == 4 {
-			s = args[2]
-			strPerson = args[3]
+		dataRawArg.Kind = 1
+		dataRawArg.Content = tmpContent
+	default:
+		if tmpArgJson, err := buildJson(args); err != nil {
+			return err
 		} else {
-			return errors.New("Invalid number of arguments")
+			err = json5.Unmarshal([]byte(tmpArgJson), &dataRawArg)
+			if err != nil {
+				return err
+			}
 		}
-	} else {
-		return errors.New("Invalid pubMessage function call")
 	}
 
 	// Temporary workaround for false positives
@@ -60,10 +52,23 @@ func publishMessage(args []string, cc confClass) error {
 	// Although I am thinking of countermeasures,
 	// it seems difficult to solve the problem.
 	//if containsNsec1(s) || containsHsec1(s) || containsNsec1(strReason) || containsHsec1(strReason) {
-	if containsNsec1(s)  || containsNsec1(strReason)  {
+	if containsNsec1(dataRawArg.Content) {
 		return errors.New(fmt.Sprintf("STRONGEST CAUTION!! : POSTS CONTAINING PRIVATE KEYS!! YOUR POST HAS BEEN REJECTED!!"))
 	}
+	if 0 < len(dataRawArg.Tags) && dataRawArg.Tags[0][tagName] == "content-warning" {
+		if containsNsec1(dataRawArg.Tags[0][reason]) {
+			return errors.New(fmt.Sprintf("STRONGEST CAUTION!! : POSTS CONTAINING PRIVATE KEYS!! YOUR POST HAS BEEN REJECTED!!"))
+		}
+	} else if 0 < len(dataRawArg.Tags) && dataRawArg.Tags[0][tagName] == "p" {
+		if containsNsec1(dataRawArg.Tags[0][person]) {
+			return errors.New(fmt.Sprintf("STRONGEST CAUTION!! : POSTS CONTAINING PRIVATE KEYS!! YOUR POST HAS BEEN REJECTED!!"))
+		}
+	}
+	if err := replaceBech32(dataRawArg.Kind, dataRawArg.Tags); err != nil {
+		return err
+	}
 
+/*
 	if 0 < len(strPerson) && is64HexString(strPerson) == false {
 		if pref, err := getPrefixInString(strPerson); err == nil {
 			switch pref {
@@ -78,6 +83,7 @@ func publishMessage(args []string, cc confClass) error {
 			}
 		}
 	}
+*/
 
 	sk, err := cc.load(cc.ConfData.Filename.Hsec)
 	if err != nil {
@@ -95,32 +101,23 @@ func publishMessage(args []string, cc confClass) error {
 		return err
 	}
 
-	tgs := nostr.Tags{}
-	if err := cc.setCustomEmoji(s, &tgs); err != nil {
+	if err := cc.setCustomEmoji(dataRawArg.Content, &dataRawArg.Tags); err != nil {
 		return err
 	}
 
 	// hashtags
-	tmpstr, err := excludeHashtagsParsign(s)
+	tmpstr, err := excludeHashtagsParsign(dataRawArg.Content)
 	if err != nil {
 		return err
 	}
-	setHashTags(tmpstr, &tgs)
-
-	if 0 < len(strReason) {
-		setContentWarning(strReason, &tgs)
-	}
-
-	if 0 < len(strPerson) {
-		setPerson(strPerson, &tgs)
-	}
+	setHashTags(tmpstr, &dataRawArg.Tags)
 
 	ev := nostr.Event{
 		PubKey:    pk,
 		CreatedAt: nostr.Now(),
 		Kind:      nostr.KindTextNote,
-		Tags:      tgs,
-		Content:   s,
+		Tags:      dataRawArg.Tags,
+		Content:   dataRawArg.Content,
 	}
 
 	// calling Sign sets the event ID field and the event Sig field
