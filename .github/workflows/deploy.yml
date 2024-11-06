@@ -25,10 +25,10 @@ jobs:
         run: |
           mkdir -p artifacts/${{ matrix.os }}
           if [ ${{ matrix.os }} = 'ubuntu-latest' ]; then
-            GOOS=linux GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/nostk-linux nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go publishMessageTo.go removeEvent.go getNote.go expandGoNostr.go publishRaw.go common.go
+            GOOS=linux GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/nostk-linux nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go removeEvent.go getNote.go expandGoNostr.go publishRaw.go common.go
           elif [ ${{ matrix.os }} = 'macos-latest' ]; then
-            GOOS=darwin GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/nostk_amd64 nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go publishMessageTo.go removeEvent.go getNote.go expandGoNostr.go publishRaw.go common.go
-            GOOS=darwin GOARCH=arm64 go build -o artifacts/${{ matrix.os }}/nostk_arm64 nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go publishMessageTo.go removeEvent.go getNote.go expandGoNostr.go publishRaw.go common.go
+            GOOS=darwin GOARCH=amd64 go build -o artifacts/${{ matrix.os }}/nostk_amd64 nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go removeEvent.go getNote.go expandGoNostr.go publishRaw.go common.go
+            GOOS=darwin GOARCH=arm64 go build -o artifacts/${{ matrix.os }}/nostk_arm64 nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go removeEvent.go getNote.go expandGoNostr.go publishRaw.go common.go
             lipo -create -output artifacts/${{ matrix.os }}/nostk-macos artifacts/${{ matrix.os }}/nostk_amd64 artifacts/${{ matrix.os }}/nostk_arm64
             rm artifacts/${{ matrix.os }}/nostk_amd64 artifacts/${{ matrix.os }}/nostk_arm64
           fi
@@ -61,7 +61,7 @@ jobs:
       - name: Build for Windows
         run: |
           mkdir -p artifacts/windows-latest
-          go build -o artifacts/windows-latest/nostk.exe nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go publishMessageTo.go removeEvent.go getNote.go expandGoNostr.go publishRaw.go common.go
+          go build -o artifacts/windows-latest/nostk.exe nostk.go catEvent.go catHome.go catNSFW.go catSelf.go config.go dispHelp.go emojiReaction.go publishMessage.go removeEvent.go getNote.go expandGoNostr.go publishRaw.go common.go
         shell: pwsh
 
       - name: Copy json
