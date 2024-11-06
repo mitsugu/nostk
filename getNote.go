@@ -37,6 +37,11 @@ type Filters struct {
 
 // }}}
 
+type Recieve struct {
+	RelayUrl string			// data.Relay.URL
+	Event    nostr.Event	// data.Event
+}
+
 type UserFilter struct {
 	strContentExp string
 	strTagsExp    string
@@ -130,12 +135,12 @@ func (uf *UserFilter) replaceUserFilter(ev nostr.RelayEvent) (string, error) {
 // }}}
 
 /*
-getNote {{{
+getNote {{
 */
 
 func getNote(args []string, cc confClass) error {
 	var ut int64 = 0
-	var wb []NOSTRLOG
+	//var wb []NOSTRLOG
 
 	pc, _, _, _ := runtime.Caller(1)
 	fn := runtime.FuncForPC(pc)
@@ -215,6 +220,7 @@ func getNote(args []string, cc confClass) error {
 	ctx := context.Background()
 	pool := nostr.NewSimplePool(ctx)
 	ctx, cancel := context.WithCancel(ctx)
+	recieveData := []Recieve{}
 	defer cancel()
 
 	wt := time.Duration(int64(math.Ceil(float64(num)*c.Settings.MultiplierReadRelayWaitTime))) * time.Second
@@ -223,75 +229,21 @@ func getNote(args []string, cc confClass) error {
 	go func() error {
 		ch := pool.SubManyEose(ctx, rs, filters)
 		for event := range ch {
-			switch event.Kind {
-			case 1:
-				tmpBuf, err := uf.replaceUserFilter(event)
-				if err != nil {
-					return err
-				}
-				var buf string
-				switch fn.Name() {
-				case CatHome:
-					if c.Settings.DefaultContentWarning {
-						buf = replaceNsfw(event)
-					}
-					if (buf == event.Content) && (0 < len(tmpBuf)) {
-						buf = tmpBuf
-					}
-				case CatSelf:
-					buf = event.Content
-				case CatNSFW:
-					if 0 < len(tmpBuf) {
-						buf = tmpBuf
-					} else {
-						buf = event.Content
-					}
-				default:
-					if 0 < len(tmpBuf) {
-						buf = tmpBuf
-					} else {
-						buf = event.Content
-					}
-				}
-				buf = strings.Replace(buf, "\n", "\\n", -1)
-				buf = strings.Replace(buf, "\b", "\\b", -1)
-				buf = strings.Replace(buf, "\f", "\\f", -1)
-				buf = strings.Replace(buf, "\r", "\\r", -1)
-				buf = strings.Replace(buf, "\t", "\\t", -1)
-				buf = strings.Replace(buf, "\\", "\\\\", -1)
-				buf = strings.Replace(buf, "/", "\\/", -1)
-				buf = strings.Replace(buf, "\"", "\\\"", -1)
-				var Contents CONTENTS
-				Contents.Date = fmt.Sprintf("%v", event.CreatedAt)
-				Contents.PubKey = event.PubKey
-				Contents.Content = buf
-				tmp := NOSTRLOG{event.ID, Contents}
-				wb = append(wb, tmp)
-			}
+			conv := convertRelayEventToRecieve(&event)
+			recieveData = append(recieveData, conv)
 		}
 		return nil
 	}()
 	select {
 	case <-timer.C:
-		sort.Slice(wb, func(i, j int) bool {
-			return wb[i].Contents.Date > wb[j].Contents.Date
+		sort.Slice(recieveData, func(i, j int) bool {
+			return recieveData[i].Event.CreatedAt > recieveData[j].Event.CreatedAt
 		})
-		fmt.Println("{")
-		last := len(wb) - 1
-		cnt := 0
-		for i := range wb {
-			if cnt < last {
-				fmt.Printf(
-					"\t\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"},\n",
-					wb[i].Id, wb[i].Contents.Date, wb[i].Contents.PubKey, wb[i].Contents.Content)
-			} else {
-				fmt.Printf(
-					"\t\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"}\n",
-					wb[i].Id, wb[i].Contents.Date, wb[i].Contents.PubKey, wb[i].Contents.Content)
-			}
-			cnt++
+		if data, err := json5.Marshal(recieveData); err != nil {
+			return err
+		} else {
+			fmt.Printf("%v",string(data))
 		}
-		fmt.Println("}")
 		return nil
 	}
 }
@@ -352,6 +304,18 @@ func checkNsfw(tgs nostr.Tags) bool {
 		}
 	}
 	return false
+}
+
+// }}}
+
+/*
+convertRelayEventToRecieve {{{
+*/
+func convertRelayEventToRecieve(data *nostr.RelayEvent) Recieve {
+	return Recieve{
+		RelayUrl: data.Relay.URL,
+		Event:    *data.Event,
+	}
 }
 
 // }}}
