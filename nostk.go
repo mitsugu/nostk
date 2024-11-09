@@ -445,7 +445,7 @@ func readStdIn() (string, error) {
 	defer timer.Stop()
 	select {
 	case text := <-cn:
-		return text, nil
+		return strings.TrimRight(text, "\n\r"), nil
 	case <-timer.C:
 		return "", errors.New("Time out input from standard input")
 	}

@@ -26,9 +26,9 @@ publishMessage
 func publishMessage(args []string, cc confClass) error {
 	dataRawArg := RawArg{}
 	switch len(args) {
-	case 0:
-		return errors.New("Not enough arguments")
 	case 1:
+		return errors.New("Not enough arguments")
+	case 2:
 		// Receive content from standard input
 		tmpContent, err := readStdIn()
 		if err != nil {
@@ -36,7 +36,7 @@ func publishMessage(args []string, cc confClass) error {
 		}
 		dataRawArg.Kind = 1
 		dataRawArg.Content = tmpContent
-	default:
+	case 3:
 		if tmpArgJson, err := buildJson(args); err != nil {
 			return err
 		} else {
@@ -45,6 +45,8 @@ func publishMessage(args []string, cc confClass) error {
 				return err
 			}
 		}
+	default:
+		return errors.New("Too meny argument")
 	}
 
 	// Temporary workaround for false positives

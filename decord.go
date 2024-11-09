@@ -32,7 +32,7 @@ func (r Decorder) decord(str string) (string, string, error) {
 			return pref, data.PublicKey, nil
 		}
 	}
-	return "", "", errors.New("Not support bech32 type") 
+	return "", "", errors.New("Not support bech32 type")
 }
 func decord(args []string, cc confClass) error {
 	decorder := Decorder{}
@@ -44,10 +44,10 @@ func decord(args []string, cc confClass) error {
 		if str, err := readStdIn(); err != nil {
 			return errors.New("Not set text message")
 		} else {
-			if pref, hex, err := decorder.decord(str); err != nil {
+			if pref, data, err := decorder.decord(str); err != nil {
 				return err
 			} else {
-				fmt.Printf("%v: %v\n", pref, hex)
+				fmt.Printf("%v: %v\n", pref, data)
 			}
 		}
 	case 3:
