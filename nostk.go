@@ -173,6 +173,11 @@ func main() {
 			log.Fatal(err)
 			os.Exit(1)
 		}
+	case "decord":
+		if err := decord(os.Args, cc); err != nil {
+			log.Fatal(err)
+			os.Exit(1)
+		}
 	default:
 		log.Fatal(errors.New("Subcommand does not exist."))
 		os.Exit(1)
