@@ -2,8 +2,6 @@ package main
 
 import (
 	"github.com/nbd-wtf/go-nostr"
-	//"github.com/nbd-wtf/go-nostr/nip19"
-	//"log"
 	"testing"
 )
 

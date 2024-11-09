@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"regexp"
 	"strings"
 	"time"
 
@@ -476,42 +475,6 @@ func toHex(str string) (string, any, error) {
 		return "", "", err
 	}
 	return pref, data, nil
-}
-
-// }}}
-
-/*
-is64HexString {{{
-*/
-func is64HexString(s string) bool {
-	if len(s) != 64 {
-		return false
-	}
-	match, _ := regexp.MatchString("^[a-fA-F0-9]{64}$", s)
-	return match
-}
-
-// }}}
-
-/*
-isHexString {{{
-*/
-func isHexString(s string) bool {
-	match, _ := regexp.MatchString("^[a-fA-F0-9]+$", s)
-	return match
-}
-
-// }}}
-
-/*
-getPrefixInString {{{
-*/
-func getPrefixInString(str string) (string, error) {
-	pref, _, err := nip19.Decode(str)
-	if err != nil {
-		return "", err
-	}
-	return pref, nil
 }
 
 // }}}

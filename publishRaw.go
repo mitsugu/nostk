@@ -7,13 +7,14 @@ import (
 	"github.com/mattn/go-jsonpointer"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/yosuke-furukawa/json5/encoding/json5"
-	"log"
+	//"log"
 	"runtime"
 	"strings"
 )
 
 const (
-	lengthHexData = 64
+	lengthHexData	= 64
+	indexTagName	= 0
 )
 
 /*
@@ -79,10 +80,8 @@ func publishRaw(args []string, cc confClass) error {
 		return err
 	}
 
-	// calling Sign sets the event ID field and the event Sig field
 	ev.Sign(sk)
 
-	// publish the event to two relays
 	ctx := context.Background()
 	for _, url := range rl {
 		relay, err := nostr.RelayConnect(ctx, url)
@@ -146,11 +145,10 @@ func mkEvent(pJson interface{}, cc confClass) (nostr.Event, error) {
 	if err := checkTags(kind, tgs); err != nil {
 		return ev, err
 	}
-	/*
-		if ret := hasPrefixInTags(tgs); ret == true {
-			return ev, errors.New("Include bech32 prefixes")
-		}
-	*/
+	tagsFuncs := Tags{}
+	if ret := tagsFuncs.hasPrefix(tgs, "nsec"); ret == true {
+		return ev, errors.New("STRONGEST CAUTION!! : POSTS CONTAINING PRIVATE KEYS!! YOUR POST HAS BEEN REJECTED!!")
+	}
 
 	if err := replaceBech32(kind, tgs); err != nil {
 		return ev, err
@@ -249,98 +247,55 @@ func addTagsFromJson(pJson interface{}, tgs *nostr.Tags) error {
 // }}}
 
 /*
-checkTags {{{
-*/
-func checkTags(kind int, tgs nostr.Tags) error {
-	const tagNameIndex = 0
-	list := GetChkTblMap()
-	for i := range tgs {
-		if result := contains(list[kind], tgs[i][tagNameIndex]); result != true {
-			log.Printf("kind : %v, tagName : %v\n", kind, tgs[i][tagNameIndex])
-			return errors.New("Inclusion of invalid tag in specified kind")
-		}
-	}
-	return nil
-}
-
-var chkTblMap = map[int][]string{
-	1:     {"content-warning", "client", "e", "emoji", "expiration", "p", "q", "r", "t"},
-	6:     {"e", "p"},
-	10000: {"e", "p", "t", "word"},
-	10001: {"e"},
-	30315: {"d", "emoji", "expiration", "r"},
-}
-
-func GetChkTblMap() map[int][]string {
-	newMap := make(map[int][]string)
-	for key, value := range chkTblMap {
-		newMap[key] = append([]string(nil), value...)
-	}
-	return newMap
-}
-func sliceToMap(slice []string) map[string]struct{} {
-	m := make(map[string]struct{})
-	for _, v := range slice {
-		m[v] = struct{}{} // struct{}{} はゼロサイズでメモリ効率が良い
-	}
-	return m
-}
-func contains(slice []string, target string) bool {
-	m := sliceToMap(slice)
-	_, exists := m[target]
-	return exists
-}
-
-// }}}
-
-/*
 hasPrefixInTags {{{
 */
 type StringPrefix []string
 
-func (s StringPrefix) includes(target string) bool {
+func (s StringPrefix) includes(target string) (string, bool) {
 	for _, v := range s {
 		if strings.Contains(target, v) {
-			return true
+			return v, true
 		}
 	}
-	return false
+	return "", false
 }
-func (s StringPrefix) hasPrefix(target string) bool {
+func (s StringPrefix) hasPrefix(target string) (string, bool) {
 	for _, prefix := range s {
 		if strings.HasPrefix(target, prefix) {
-			return true
+			return prefix, true
 		}
 	}
-	return false
+	return "", false
 }
 func NewStringPrefix() StringPrefix {
 	return StringPrefix{"npub", "nesc", "note", "nprofile", "nevent", "naddr", "nrelay"}
 }
-func hasPrefixInTags(tgs nostr.Tags) bool {
+func hasPrefixInTags(tgs nostr.Tags) (string, bool) {
 	prefixs := NewStringPrefix()
 	for i := range tgs {
 		for j := range tgs[i] {
-			if ret := prefixs.includes(tgs[i][j]); ret == true {
-				return true
+			if pref, ret := prefixs.includes(tgs[i][j]); ret == true {
+				return pref, true
 			}
 		}
 	}
-	return false
+	return "", false
 }
 
 // }}}
 
 /*
 replaceBech32 {{{
+
+WHAT'S THIS?
+
 */
 func replaceBech32(kind int, tgs nostr.Tags) error {
 	list := NewModifyBech32TagsList()
 	bechList := NewModifyBech32List()
-	const indexTagName = 0
-	for i := range tgs {
-		if res := list.has(kind, tgs[i][indexTagName]); res == true { // Check for presence of tag
-			if err := bechList.convert(tgs[i]); err != nil { // Decoding Bech32 format ID or key or more
+	for _, tg := range tgs {
+		if res := list.has(kind, tg[indexTagName]); res == true {
+			if err := bechList.convert(tg); err != nil {
 				return err
 			}
 		}
@@ -418,14 +373,7 @@ func (r modifyBech32TblMap) convert(tag nostr.Tag) error {
 		if 0 == i { // skip tag name
 			continue
 		}
-		if isHexString(tag[i]) == true { // hex ID or key
-			if lengthHexData != len(tag[i]) {
-				return errors.New("Detecting invalid hexadecimal data in tags")
-			} else {
-				continue
-			}
-		}
-		if ret := prefixs.hasPrefix(tag[i]); ret != true { // check prefix
+		if _, ret := prefixs.hasPrefix(tag[i]); ret != true { // check prefix
 			continue
 		}
 		if _, tmpData, err := toHex(tag[i]); err != nil { // convert hex string for Besh32 ID or key

@@ -2,8 +2,49 @@ package main
 
 import (
 	"errors"
+	"github.com/nbd-wtf/go-nostr"
 	"testing"
 )
+
+func TestHasPrefix(t *testing.T) {
+	funcs := Tags{}
+	tests := []struct{
+		tgs		nostr.Tags
+		pref	string
+		ret		bool
+	}{
+		{
+			tgs:nostr.Tags {
+				{"p","npub1czyqt7dafpysfye9w3agpp4rcrsxnt0tr8v0t8kyu66327maxstq5ckh7u"},
+			},
+			pref: "npub",
+			ret: true,
+		}, {
+			tgs:nostr.Tags {
+				{"p","c08805f9bd4849049325747a8086a3c0e069adeb19d8f59ec4e6b5157b7d3416"},
+			},
+			pref: "npub",
+			ret: false,
+		}, {
+			tgs:nostr.Tags {
+				{"p","nsec1czyqt7dafpysfye9w3agpp4hogehogehgoe0t8kyu66327maxstq5ckh7u"},
+			},
+			pref: "npub",
+			ret: false,
+		}, {
+			tgs:nostr.Tags {
+				{"p","nsec1czyqt7dafpysfye9w3agpp4hogehogehgoe0t8kyu66327maxstq5ckh7u"},
+			},
+			pref: "nsec",
+			ret: true,
+		},
+	}
+	for _, tc := range tests {
+		if ret := funcs.hasPrefix(tc.tgs, tc.pref); ret != tc.ret {
+			t.Fatalf("got status: %v, Want status: %v", ret, tc.ret)
+		}
+	}
+}
 
 func TestNewSubCmdKindTbl(t *testing.T) {
 	list := NewSubCmdKindTbl()
