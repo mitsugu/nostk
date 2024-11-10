@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nbd-wtf/go-nostr"
+	"github.com/nbd-wtf/go-nostr/nip19"
 	"github.com/yosuke-furukawa/json5/encoding/json5"
 	//"log"
 	"math"
@@ -134,8 +135,7 @@ func (uf *UserFilter) replaceUserFilter(ev nostr.RelayEvent) (string, error) {
 
 // }}}
 
-/*
-getNote {{
+/* getNote {{{
 */
 
 func getNote(args []string, cc confClass) error {
@@ -230,7 +230,11 @@ func getNote(args []string, cc confClass) error {
 		ch := pool.SubManyEose(ctx, rs, filters)
 		for event := range ch {
 			conv := convertRelayEventToRecieve(&event)
-			recieveData = append(recieveData, conv)
+			if tmp, err  := replaceToBech32(conv); err != nil {
+				return err
+			} else {
+				recieveData = append(recieveData, tmp)
+			}
 		}
 		return nil
 	}()
@@ -250,8 +254,7 @@ func getNote(args []string, cc confClass) error {
 
 // }}}
 
-/*
-replaceNsfw {{{
+/* replaceNsfw {{{
 */
 func replaceNsfw(e nostr.RelayEvent) string {
 	if checkNsfw(e.Tags) == false {
@@ -263,8 +266,7 @@ func replaceNsfw(e nostr.RelayEvent) string {
 
 // }}}
 
-/*
-getNsfwReason {{{
+/* getNsfwReason {{{
 */
 func getNsfwReason(tgs nostr.Tags) string {
 	if checkNsfw(tgs) == false {
@@ -286,8 +288,7 @@ func getNsfwReason(tgs nostr.Tags) string {
 
 // }}}
 
-/*
-checkNsfw {{{
+/* checkNsfw {{{
 */
 func checkNsfw(tgs nostr.Tags) bool {
 	if len(tgs) < 1 {
@@ -308,8 +309,7 @@ func checkNsfw(tgs nostr.Tags) bool {
 
 // }}}
 
-/*
-convertRelayEventToRecieve {{{
+/* convertRelayEventToRecieve {{{
 */
 func convertRelayEventToRecieve(data *nostr.RelayEvent) Recieve {
 	return Recieve{
@@ -319,3 +319,22 @@ func convertRelayEventToRecieve(data *nostr.RelayEvent) Recieve {
 }
 
 // }}}
+
+/* replaceToBech32 {{{
+*/
+func replaceToBech32(data Recieve) (Recieve, error) {
+	if tmpdata, err:= nip19.EncodeEvent(data.Event.ID, []string{data.RelayUrl}, data.Event.PubKey); err != nil {
+		return data, err
+	} else {
+		data.Event.ID = tmpdata
+	}
+	if tmpdata, err := nip19.EncodePublicKey(data.Event.PubKey); err != nil {
+		return data, err
+	} else {
+		data.Event.PubKey = tmpdata
+	}
+	return data, nil
+}
+
+// }}}
+
