@@ -5,8 +5,7 @@ import (
 	"os"
 )
 
-/*
-dispHelp {{{
+/* dispHelp {{{
 */
 func dispHelp() {
 	usageTxt := `Usage :
@@ -52,8 +51,12 @@ func dispHelp() {
 			React to specified events.
 		removeEvent <ID> <kind> [reason]:
 			Remove the event specified by Event ID or Note ID.
+
+		decord <bech32 string>
+			Decode bech32 string to hex string.
 `
 	fmt.Fprintf(os.Stderr, "%s\n", usageTxt)
 }
 
 // }}}
+

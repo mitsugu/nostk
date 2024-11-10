@@ -98,6 +98,9 @@ nostk <sub-command> [param...]
 			React to specified events.
 	removeEvent <ID> <kind> [reason]:
 			Remove the event specified by Event ID or Note ID.
+
+	decord <bech32 string>
+		Decode bech32 string to hex string.
 ```
 
 ### About content warning note
