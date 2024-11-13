@@ -118,11 +118,12 @@ func mkEvent(pJson interface{}, cc confClass) (nostr.Event, error) {
 	}
 
 	switch kind {
-	case 1: // publish kind 1 message
-	case 6: // publish Reposts
-	case 10000: // publish mute list
-	case 10001: // publish Pinned notes
-	case 30315: // publish status
+	case 1:		// publish kind 1 message
+	case 6:		// publish Reposts
+	case 10000:	// publish mute list
+	case 10001:	// publish Pinned notes
+	case 30030:	// publish custom emoji list
+	case 30315:	// publish status
 	default:
 		return ev, errors.New("not yet suppoted kind")
 	}

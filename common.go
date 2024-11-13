@@ -53,6 +53,7 @@ func NewChkTblMap() ChkTblMap {
 		6:     {"e", "p"},
 		10000: {"e", "p", "t", "word"},
 		10001: {"e"},
+		30030: {"d", "title","emoji"},
 		30315: {"d", "emoji", "expiration", "r"},
 	}
 }
