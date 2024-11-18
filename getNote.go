@@ -226,11 +226,12 @@ func getNote(args []string, cc confClass) error {
 	wt := time.Duration(int64(math.Ceil(float64(num)*c.Settings.MultiplierReadRelayWaitTime))) * time.Second
 	timer := time.NewTimer(wt)
 	defer timer.Stop()
+	reb := replaceEnginForBech32{}
 	go func() error {
 		ch := pool.SubManyEose(ctx, rs, filters)
 		for event := range ch {
 			conv := convertRelayEventToRecieve(&event)
-			if tmp, err  := replaceToBech32(conv); err != nil {
+			if tmp, err  := reb.replaceToBech32(conv); err != nil {
 				return err
 			} else {
 				recieveData = append(recieveData, tmp)
@@ -320,9 +321,13 @@ func convertRelayEventToRecieve(data *nostr.RelayEvent) Recieve {
 
 // }}}
 
-/* replaceToBech32 {{{
+/* replaceToBech32
 */
-func replaceToBech32(data Recieve) (Recieve, error) {
+type replaceEnginForBech32 struct{
+	cache			Recieve
+}
+func (r replaceEnginForBech32)replaceToBech32(data Recieve) (Recieve, error) {
+	r.cache = data
 	if tmpdata, err:= nip19.EncodeEvent(data.Event.ID, []string{data.RelayUrl}, data.Event.PubKey); err != nil {
 		return data, err
 	} else {
@@ -333,8 +338,83 @@ func replaceToBech32(data Recieve) (Recieve, error) {
 	} else {
 		data.Event.PubKey = tmpdata
 	}
+	if tmpdata, err := r.replaceTagsToBech32(data); err != nil {
+		return data, err
+	} else {
+		data = tmpdata
+	}
 	return data, nil
 }
+func (r replaceEnginForBech32)replaceTagsToBech32(data Recieve) (Recieve, error) {
+	mbl := NewModifyBech32List()
+	modified := data
+	for tagIndex, tag := range data.Event.Tags {
+		if len(tag) < 1 {
+			continue
+		}
 
+		tagKey := tag[0]
+		conversions := mbl.GetByTagKey(tagKey)
+		if conversions == nil {
+			continue
+		}
+		for elementIdx, formats := range conversions {
+			if elementIdx >= len(tag) {
+				continue
+			}
+			//element := tag[elementIdx]
+			for _, format := range formats {
+				newValue, err := r.convert(data, tagIndex, elementIdx, format)
+				if err != nil {
+					return modified, err
+				} else {
+					modified = newValue
+				}
+			}
+		}
+	}
+	return modified, nil
+}
+/*
+この関数は引数で指定されたタグ配列の Hex 文字列を実際に
+Bech32 文字列に変換する。
+replaceTagsToBech32() から呼び出すことのみを前提にしており
+そのためタグ内に変換対象データが必ず存在することを前提としている。
+他の言語であれば private メンバー関数であり、コードの他の部分からの
+参照は行われないことを前提としている。
+*/
+func (r replaceEnginForBech32)convert(data Recieve, tagIndex int, elementIndex int, format string) (Recieve, error) {
+	switch format {
+	case "nevent":
+		// tag 内の PubKey の有無をチェックすること
+		// 現在 e タグを前提としているので、今後変更する可能性がある
+		switch r.cache.Event.Tags[tagIndex][0] {
+		case "e", "q":
+			strPubKey := ""
+			var indexPubKey int
+			switch r.cache.Event.Tags[tagIndex][0] {
+			case "e":
+				indexPubKey = 4
+			case "q":
+				indexPubKey = 3
+			}
+			if (indexPubKey + 1) == len(data.Event.Tags[tagIndex]) {
+				strPubKey = r.cache.Event.Tags[tagIndex][indexPubKey]
+			}
+			if tmpdata, err := nip19.EncodeEvent(data.Event.Tags[tagIndex][elementIndex], []string{data.RelayUrl}, strPubKey); err != nil {
+				return data, err
+			} else {
+				data.Event.Tags[tagIndex][elementIndex] = tmpdata
+			}
+		}
+	case "npub":
+		if tmpdata, err := nip19.EncodePublicKey(data.Event.Tags[tagIndex][elementIndex]); err != nil {
+			return data, err
+		} else {
+			data.Event.Tags[tagIndex][elementIndex] = tmpdata
+		}
+	}
+	return data, nil
+}
 // }}}
 

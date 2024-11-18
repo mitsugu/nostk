@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
-	"log"
+	//"log"
 	"regexp"
 	"strings"
 )
@@ -73,7 +73,6 @@ func checkTags(kind int, tgs nostr.Tags) error {
 	list := NewChkTblMap()
 	for _, tg := range tgs {
 		if result := list.contains(kind, tg[indexTagName]); result != true {
-			log.Printf("kind : %v, tagName : %v\n", kind, tg[indexTagName])
 			return errors.New("Inclusion of invalid tag in specified kind")
 		}
 	}
@@ -326,6 +325,64 @@ func containsHsec1(text string) bool {
 	return false
 }
 */
+
+// }}}
+
+// Bech32 converter {{{
+type modifyBech32TblMap map[string]map[int][]string
+func NewModifyBech32List() modifyBech32TblMap {
+	return modifyBech32TblMap{
+		"e": {
+			1: {"nevent"},
+			4: {"npub"},
+		},
+		"p": {
+			1: {"npub"},
+		},
+		"q": {
+			1: {"nevent"},
+			3: {"npub"},
+		},
+	}
+}
+func (r modifyBech32TblMap) exists(tagName string, pref string) bool {
+	innerMap, ok := r[tagName];
+	if !ok {
+		return false
+	}
+
+	for _, values := range innerMap {
+		for _, item := range values {
+			if item == pref {
+				return true
+			}
+		}
+	}
+	return false
+}
+func (r modifyBech32TblMap) convert(tag nostr.Tag) error {
+	prefixs := NewStringPrefix()
+	for i := range tag {
+		if 0 == i { // skip tag name
+			continue
+		}
+		if _, ret := prefixs.hasPrefix(tag[i]); ret != true { // check prefix
+			continue
+		}
+		if _, tmpData, err := toHex(tag[i]); err != nil { // convert hex string for Besh32 ID or key
+			return err
+		} else {
+			tag[i], _ = tmpData.(string)
+		}
+	}
+	return nil
+}
+func (r modifyBech32TblMap) GetByTagKey(key string) map[int][]string {
+    if result, exists := r[key]; exists {
+        return result
+    }
+    return nil
+}
 
 // }}}
 

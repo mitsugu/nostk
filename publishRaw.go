@@ -338,56 +338,6 @@ func (r modifyBech32TagsTblMap) has(kind int, tagName string) bool {
 	return false
 }
 
-// Bech32 converter
-type modifyBech32TblMap map[string]map[int][]string
-
-func NewModifyBech32List() modifyBech32TblMap {
-	return modifyBech32TblMap{
-		"e": {
-			1: {"nevent", "note"},
-			4: {"npub"},
-		},
-		"p": {
-			1: {"npub"},
-		},
-		"q": {
-			1: {"nevent", "note"},
-			3: {"npub"},
-		},
-	}
-}
-func (r modifyBech32TblMap) exists(tagName string, pref string) bool {
-	if innerMap, ok := r[tagName]; ok {
-		for _, values := range innerMap {
-			for _, item := range values {
-				if item == pref {
-					return true
-				}
-			}
-		}
-	}
-	return false
-}
-func (r modifyBech32TblMap) convert(tag nostr.Tag) error {
-	prefixs := NewStringPrefix()
-	for i := range tag {
-		if 0 == i { // skip tag name
-			continue
-		}
-		if _, ret := prefixs.hasPrefix(tag[i]); ret != true { // check prefix
-			continue
-		}
-		if _, tmpData, err := toHex(tag[i]); err != nil { // convert hex string for Besh32 ID or key
-			return err
-		} else {
-			tag[i], _ = tmpData.(string)
-		}
-	}
-	return nil
-}
-
-// }}}
-
 /*
 Error check function table {{{
 IMPLEMENTED IN A FUTURE MAJOR VERSION
@@ -399,3 +349,4 @@ var defChkTblMap = map[string]map[int]string{
 }
 
 // }}}
+
