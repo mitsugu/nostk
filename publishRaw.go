@@ -9,7 +9,6 @@ import (
 	"github.com/yosuke-furukawa/json5/encoding/json5"
 	//"log"
 	"runtime"
-	"strings"
 )
 
 const (
@@ -17,8 +16,7 @@ const (
 	indexTagName	= 0
 )
 
-/*
-publishRaw
+/* publishRaw {{{
 
 	Data format example:
 		{
@@ -102,8 +100,7 @@ func publishRaw(args []string, cc confClass) error {
 
 // }}}
 
-/*
-mkEvent {{{
+/* mkEvent {{{
 */
 func mkEvent(pJson interface{}, cc confClass) (nostr.Event, error) {
 	var ev nostr.Event
@@ -178,8 +175,7 @@ func mkEvent(pJson interface{}, cc confClass) (nostr.Event, error) {
 
 // }}}
 
-/*
-getKind {{{
+/* getKind {{{
 */
 func getKind(pJson interface{}) (int, error) {
 	kind, err := jsonpointer.Get(pJson, "/kind")
@@ -198,8 +194,7 @@ func getKind(pJson interface{}) (int, error) {
 
 // }}}
 
-/*
-getContent {{{
+/* getContent {{{
 */
 func getContent(pJson interface{}) (string, error) {
 	content, err := jsonpointer.Get(pJson, "/content")
@@ -221,8 +216,7 @@ func getContent(pJson interface{}) (string, error) {
 
 // }}}
 
-/*
-addTagsFromJson {{{
+/* addTagsFromJson {{{
 */
 func addTagsFromJson(pJson interface{}, tgs *nostr.Tags) error {
 	jsonMap, ok := pJson.(map[string]interface{})
@@ -247,99 +241,7 @@ func addTagsFromJson(pJson interface{}, tgs *nostr.Tags) error {
 
 // }}}
 
-/*
-hasPrefixInTags {{{
-*/
-type StringPrefix []string
-
-func (s StringPrefix) includes(target string) (string, bool) {
-	for _, v := range s {
-		if strings.Contains(target, v) {
-			return v, true
-		}
-	}
-	return "", false
-}
-func (s StringPrefix) hasPrefix(target string) (string, bool) {
-	for _, prefix := range s {
-		if strings.HasPrefix(target, prefix) {
-			return prefix, true
-		}
-	}
-	return "", false
-}
-func NewStringPrefix() StringPrefix {
-	return StringPrefix{"npub", "nesc", "note", "nprofile", "nevent", "naddr", "nrelay"}
-}
-func hasPrefixInTags(tgs nostr.Tags) (string, bool) {
-	prefixs := NewStringPrefix()
-	for i := range tgs {
-		for j := range tgs[i] {
-			if pref, ret := prefixs.includes(tgs[i][j]); ret == true {
-				return pref, true
-			}
-		}
-	}
-	return "", false
-}
-
-// }}}
-
-/*
-replaceBech32 {{{
-
-WHAT'S THIS?
-
-*/
-func replaceBech32(kind int, tgs nostr.Tags) error {
-	list := NewModifyBech32TagsList()
-	bechList := NewModifyBech32List()
-	for _, tg := range tgs {
-		if res := list.has(kind, tg[indexTagName]); res == true {
-			if err := bechList.convert(tg); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-// Checker for target tag
-//
-//	Maintains a tag name list corresponding to kind and
-//	uses the list to determine whether it is a target tag
-type modifyBech32TagsTblMap map[int][]string
-
-func NewModifyBech32TagsList() modifyBech32TagsTblMap {
-	return modifyBech32TagsTblMap{
-		1:     {"e", "p", "q"},
-		6:     {"e", "p"},
-		10000: {"e", "p"},
-		10001: {"e"},
-	}
-}
-
-// function has
-//
-//	map's member method of modifyBech32TagsTblMap
-//	Returns a bool value indicating whether data corresponding
-//	to the kind and tag name exists in modifyBech32TagsTblMap.
-func (r modifyBech32TagsTblMap) has(kind int, tagName string) bool {
-	tags, exists := r[kind]
-	if !exists {
-		return false
-	}
-
-	for _, tag := range tags {
-		if tag == tagName {
-			return true
-		}
-	}
-	return false
-}
-
-/*
-Error check function table {{{
+/* Error check function table {{{
 IMPLEMENTED IN A FUTURE MAJOR VERSION
 */
 var defChkTblMap = map[string]map[int]string{

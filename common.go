@@ -362,17 +362,21 @@ func (r modifyBech32TblMap) exists(tagName string, pref string) bool {
 }
 func (r modifyBech32TblMap) convert(tag nostr.Tag) error {
 	prefixs := NewStringPrefix()
-	for i := range tag {
+	for i, element := range tag {
 		if 0 == i { // skip tag name
 			continue
 		}
-		if _, ret := prefixs.hasPrefix(tag[i]); ret != true { // check prefix
+		if _, ret := prefixs.hasPrefix(element); ret != true { // check prefix
 			continue
 		}
-		if _, tmpData, err := toHex(tag[i]); err != nil { // convert hex string for Besh32 ID or key
+		if prefix, tmpData, err := toHex(element); err != nil { // convert hex string for Besh32 ID or key
 			return err
 		} else {
-			tag[i], _ = tmpData.(string)
+			if prefix == "nevent" {
+				tag[i] = tmpData.(nostr.EventPointer).ID
+			} else {
+				tag[i] = tmpData.(string)
+			}
 		}
 	}
 	return nil
@@ -382,6 +386,109 @@ func (r modifyBech32TblMap) GetByTagKey(key string) map[int][]string {
         return result
     }
     return nil
+}
+
+// }}}
+
+/* replaceBech32 {{{
+
+WHAT'S THIS?
+
+*/
+func replaceBech32(kind int, tgs nostr.Tags) error {
+	list := NewModifyBech32TagsList()
+	bechList := NewModifyBech32List()
+	for _, tg := range tgs {
+		if res := list.has(kind, tg[indexTagName]); res == true {
+			if err := bechList.convert(tg); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// Checker for target tag
+//
+//	Maintains a tag name list corresponding to kind and
+//	uses the list to determine whether it is a target tag
+type modifyBech32TagsTblMap map[int][]string
+
+func NewModifyBech32TagsList() modifyBech32TagsTblMap {
+	return modifyBech32TagsTblMap{
+		1:     {"e", "p", "q"},
+		6:     {"e", "p"},
+		10000: {"e", "p"},
+		10001: {"e"},
+	}
+}
+
+// function has
+//
+//	map's member method of modifyBech32TagsTblMap
+//	Returns a bool value indicating whether data corresponding
+//	to the kind and tag name exists in modifyBech32TagsTblMap.
+func (r modifyBech32TagsTblMap) has(kind int, tagName string) bool {
+	tags, exists := r[kind]
+	if !exists {
+		return false
+	}
+
+	for _, tag := range tags {
+		if tag == tagName {
+			return true
+		}
+	}
+	return false
+}
+
+// }}}
+
+/* toHex {{{
+*/
+func toHex(str string) (string, any, error) {
+	pref, data, err := nip19.Decode(str)
+	if err != nil {
+		return "", "", err
+	}
+	return pref, data, nil
+}
+
+// }}}
+
+/* hasPrefixInTags {{{
+*/
+type StringPrefix []string
+
+func (s StringPrefix) includes(target string) (string, bool) {
+	for _, v := range s {
+		if strings.Contains(target, v) {
+			return v, true
+		}
+	}
+	return "", false
+}
+func (s StringPrefix) hasPrefix(target string) (string, bool) {
+	for _, prefix := range s {
+		if strings.HasPrefix(target, prefix) {
+			return prefix, true
+		}
+	}
+	return "", false
+}
+func NewStringPrefix() StringPrefix {
+	return StringPrefix{"npub", "nesc", "note", "nprofile", "nevent", "naddr", "nrelay"}
+}
+func hasPrefixInTags(tgs nostr.Tags) (string, bool) {
+	prefixs := NewStringPrefix()
+	for i := range tgs {
+		for j := range tgs[i] {
+			if pref, ret := prefixs.includes(tgs[i][j]); ret == true {
+				return pref, true
+			}
+		}
+	}
+	return "", false
 }
 
 // }}}

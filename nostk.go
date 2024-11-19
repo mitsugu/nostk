@@ -466,16 +466,3 @@ func startDebug(s string) {
 
 // }}}
 
-/*
-toHex {{{
-*/
-func toHex(str string) (string, any, error) {
-	pref, data, err := nip19.Decode(str)
-	if err != nil {
-		return "", "", err
-	}
-	return pref, data, nil
-}
-
-// }}}
-
