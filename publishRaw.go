@@ -15,6 +15,7 @@ const (
 	Main          = "main.main"
 	PubMessage    = "main.publishMessage"
 	PubMessageTo  = "main.publishMessageTo"
+	EmojiReaction = "main.emojiReaction"
 	lengthHexData = 64
 	indexTagName  = 0
 )
@@ -58,7 +59,7 @@ func publishRaw(args []string, cc confClass) error {
 		default:
 			return errors.New("Invalid pubRaw subcommand argument")
 		}
-	case PubMessage:
+	case PubMessage, EmojiReaction:
 		strjson = args[2]
 	default:
 		return errors.New("pubRaw function call from illegal function")
@@ -124,6 +125,7 @@ func mkEvent(pJson interface{}, cc confClass) (nostr.Event, error) {
 	switch kind {
 	case 1: // publish kind 1 message
 	case 6: // publish Reposts
+  case 7: // publish emojiReaction
 	case 10000: // publish mute list
 	case 10001: // publish Pinned notes
 	case 30030: // publish custom emoji list

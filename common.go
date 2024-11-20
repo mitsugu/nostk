@@ -56,6 +56,7 @@ func NewChkTblMap() ChkTblMap {
 	return ChkTblMap{
 		1:     {"content-warning", "client", "e", "emoji", "expiration", "p", "q", "r", "t"},
 		6:     {"e", "p"},
+		7:     {"e", "emoji", "k", "p"},
 		10000: {"e", "p", "t", "word"},
 		10001: {"e"},
 		30030: {"d", "title", "emoji"},
@@ -400,8 +401,7 @@ func (r modifyBech32TblMap) GetByTagKey(key string) map[int][]string {
 
 // }}}
 
-/*
-	replaceBech32 {{{
+/* replaceBech32 {{{
 
 WHAT'S THIS?
 */

@@ -1,18 +1,16 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"github.com/nbd-wtf/go-nostr"
-	//"log"
+	"github.com/yosuke-furukawa/json5/encoding/json5"
 	"regexp"
 	"unicode"
 	"unicode/utf8"
 )
 
-/*
-	emojiRreaction {{{
+/* emojiRreaction {{{
 		[infomation for develop]
 		usage:
 			nostk emojiReaction <event_id> <public_key> <content>
@@ -29,22 +27,25 @@ import (
 		]
 */
 func emojiReaction(args []string, cc confClass) error {
-	var event_id string
-	var public_key string
-	var kind string
-	var content string
-	var err error
+	dataRawArg := RawArg{}
+	tmpArgs := []string{
+		"nostk",
+		"emojiReaction",
+	}
 
+	tgs := nostr.Tags{}
 	if len(args) < 6 {
 		return errors.New("Wrong number of parameters")
 	}
+
+	dataRawArg.Kind = 7 // kind-07 (リアクション) を設定
 	for i := range args {
-		if i < 2 {
+		if i < 2 { // "nostr emojiReaction をスキップ
 			continue
 		}
 		switch i {
-		case 2: // event_id
-			event_id = args[i]
+		case 2: // tags に event_id を設定
+			event_id := args[i]
 			if 0 < len(event_id) && is64HexString(event_id) == false {
 				if pref, err := getPrefixInString(event_id); err == nil {
 					switch pref {
@@ -65,8 +66,12 @@ func emojiReaction(args []string, cc confClass) error {
 					}
 				}
 			}
-		case 3: // public_key
-			public_key = args[i]
+			t := []string{}
+			t = append(t, "e")
+			t = append(t, event_id)
+			tgs = append(tgs, t)
+		case 3: // tags に public_key を設定
+			public_key := args[i]
 			if 0 < len(public_key) && is64HexString(public_key) == false {
 				if pref, tmpPubkey, err := toHex(public_key); err != nil {
 					return err
@@ -76,77 +81,34 @@ func emojiReaction(args []string, cc confClass) error {
 					public_key = tmpPubkey.(string)
 				}
 			}
-		case 4: // content
-			kind = args[i]
-		case 5: // content
-			content = args[i]
+			t := []string{}
+			t = append(t, "p")
+			t = append(t, public_key)
+			tgs = append(tgs, t)
+		case 4: // tags にリアクション対象の kind を設定
+			t := []string{}
+			t = append(t, "k")
+			t = append(t, args[i])
+			tgs = append(tgs, t)
+		case 5: // content に "+"、"-"、絵文字またはカスタム絵文字の
+				// ショートコードを設定
+			dataRawArg.Content = args[i]
 		}
 	}
 
-	result := checkString(content)
-	if result == false {
-		return errors.New("The argument contains text that is neither an emoji nor a custom emoji.")
-	}
-
-	sk, err := cc.load(cc.ConfData.Filename.Hsec)
-	if err != nil {
-		fmt.Println("Nothing key pair. Make key pair.")
+	// tags に emoji タグを追加する
+	if err := cc.setCustomEmoji(dataRawArg.Content, &tgs); err != nil {
 		return err
 	}
-	pk, err := nostr.GetPublicKey(sk)
-	if err != nil {
+	dataRawArg.Tags = tgs
+
+	if tmp, err := json5.Marshal(dataRawArg); err != nil {
 		return err
+	} else {
+		tmpArgs = append(tmpArgs, string(tmp))
 	}
-
-	var rl []string
-	if err := cc.getRelayList(&rl, readWriteFlag); err != nil {
-		fmt.Println("Nothing relay list. Make a relay list.")
+	if err := publishRaw(tmpArgs, cc); err != nil {
 		return err
-	}
-
-	var t []string
-	tgs := nostr.Tags{}
-	if err := cc.setCustomEmoji(content, &tgs); err != nil {
-		return err
-	}
-	t = nil
-	t = append(t, "e")
-	t = append(t, event_id)
-	tgs = append(tgs, t)
-	t = nil
-	t = append(t, "p")
-	t = append(t, public_key)
-	tgs = append(tgs, t)
-	t = nil
-	t = append(t, "k")
-	t = append(t, kind)
-	tgs = append(tgs, t)
-
-	ev := nostr.Event{
-		PubKey:    pk,
-		CreatedAt: nostr.Now(),
-		Kind:      nostr.KindReaction,
-		Tags:      tgs,
-		Content:   content,
-	}
-
-	// calling Sign sets the event ID field and the event Sig field
-	ev.Sign(sk)
-
-	// publish the event to two relays
-	ctx := context.Background()
-	for _, url := range rl {
-		relay, err := nostr.RelayConnect(ctx, url)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		err = relay.Publish(ctx, ev)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		fmt.Printf("published to %s\n", url)
 	}
 
 	return nil
@@ -200,3 +162,4 @@ func isShortCode(s string) bool {
 }
 
 // }}}
+
