@@ -8,35 +8,35 @@ import (
 
 func TestHasPrefix(t *testing.T) {
 	funcs := Tags{}
-	tests := []struct{
-		tgs		nostr.Tags
-		pref	string
-		ret		bool
+	tests := []struct {
+		tgs  nostr.Tags
+		pref string
+		ret  bool
 	}{
 		{
-			tgs:nostr.Tags {
-				{"p","npub1czyqt7dafpysfye9w3agpp4rcrsxnt0tr8v0t8kyu66327maxstq5ckh7u"},
+			tgs: nostr.Tags{
+				{"p", "npub1czyqt7dafpysfye9w3agpp4rcrsxnt0tr8v0t8kyu66327maxstq5ckh7u"},
 			},
 			pref: "npub",
-			ret: true,
+			ret:  true,
 		}, {
-			tgs:nostr.Tags {
-				{"p","c08805f9bd4849049325747a8086a3c0e069adeb19d8f59ec4e6b5157b7d3416"},
+			tgs: nostr.Tags{
+				{"p", "c08805f9bd4849049325747a8086a3c0e069adeb19d8f59ec4e6b5157b7d3416"},
 			},
 			pref: "npub",
-			ret: false,
+			ret:  false,
 		}, {
-			tgs:nostr.Tags {
-				{"p","nsec1czyqt7dafpysfye9w3agpp4hogehogehgoe0t8kyu66327maxstq5ckh7u"},
+			tgs: nostr.Tags{
+				{"p", "nsec1czyqt7dafpysfye9w3agpp4hogehogehgoe0t8kyu66327maxstq5ckh7u"},
 			},
 			pref: "npub",
-			ret: false,
+			ret:  false,
 		}, {
-			tgs:nostr.Tags {
-				{"p","nsec1czyqt7dafpysfye9w3agpp4hogehogehgoe0t8kyu66327maxstq5ckh7u"},
+			tgs: nostr.Tags{
+				{"p", "nsec1czyqt7dafpysfye9w3agpp4hogehogehgoe0t8kyu66327maxstq5ckh7u"},
 			},
 			pref: "nsec",
-			ret: true,
+			ret:  true,
 		},
 	}
 	for _, tc := range tests {
@@ -53,29 +53,29 @@ func TestNewSubCmdKindTbl(t *testing.T) {
 
 func TestHasSubcommandForSubCmdKindTbl(t *testing.T) {
 	list := NewSubCmdKindTbl()
-	tests := []struct{
+	tests := []struct {
 		commandLine []string
-		err			error
+		err         error
 	}{
 		{
-			commandLine:	[]string{"nostk","pubMessage","テストコンテント"},
-			err:			nil,
+			commandLine: []string{"nostk", "pubMessage", "テストコンテント"},
+			err:         nil,
 		},
 		{
-			commandLine:	[]string{"nostk","pubMessage","テストコンテント","nsfwの理由"},
-			err:			nil,
+			commandLine: []string{"nostk", "pubMessage", "テストコンテント", "nsfwの理由"},
+			err:         nil,
 		},
 		{
-			commandLine:	[]string{"nostk","pubMessageTo","テストコンテント","npub1czyqt7dafpysfye9w3agpp4rcrsxnt0tr8v0t8kyu66327maxstq5ckh7u"},
-			err:			nil,
+			commandLine: []string{"nostk", "pubMessageTo", "テストコンテント", "npub1czyqt7dafpysfye9w3agpp4rcrsxnt0tr8v0t8kyu66327maxstq5ckh7u"},
+			err:         nil,
 		},
 		{
-			commandLine:	[]string{"nostk","pubMessageTo","テストコンテント","c08805f9bd4849049325747a8086a3c0e069adeb19d8f59ec4e6b5157b7d3416"},
-			err:			nil,
+			commandLine: []string{"nostk", "pubMessageTo", "テストコンテント", "c08805f9bd4849049325747a8086a3c0e069adeb19d8f59ec4e6b5157b7d3416"},
+			err:         nil,
 		},
 		{
-			commandLine:	[]string{"nostk","pubRaw","テストコンテント","c08805f9bd4849049325747a8086a3c0e069adeb19d8f59ec4e6b5157b7d3416"},
-			err:			errors.New("Not supported subcommand pubRaw"),
+			commandLine: []string{"nostk", "pubRaw", "テストコンテント", "c08805f9bd4849049325747a8086a3c0e069adeb19d8f59ec4e6b5157b7d3416"},
+			err:         errors.New("Not supported subcommand pubRaw"),
 		},
 	}
 
@@ -91,30 +91,30 @@ func TestHasSubcommandForSubCmdKindTbl(t *testing.T) {
 
 func TestGetForSubCmdKindTbl(t *testing.T) {
 	list := NewSubCmdKindTbl()
-	tests := []struct{
+	tests := []struct {
 		commandLine []string
-		err			error
-		pos			int
+		err         error
+		pos         int
 	}{
 		{
-			commandLine:	[]string{"nostk","pubMessage","テストコンテント"},
-			err:			nil,
-			pos:			1,
+			commandLine: []string{"nostk", "pubMessage", "テストコンテント"},
+			err:         nil,
+			pos:         1,
 		},
 		{
-			commandLine:	[]string{"nostk","pubMessage","テストコンテント","nsfwの理由"},
-			err:			nil,
-			pos:			1,
+			commandLine: []string{"nostk", "pubMessage", "テストコンテント", "nsfwの理由"},
+			err:         nil,
+			pos:         1,
 		},
 		{
-			commandLine:	[]string{"nostk","pubMessageTo","テストコンテント","npub1czyqt7dafpysfye9w3agpp4rcrsxnt0tr8v0t8kyu66327maxstq5ckh7u"},
-			err:			nil,
-			pos:			1,
+			commandLine: []string{"nostk", "pubMessageTo", "テストコンテント", "npub1czyqt7dafpysfye9w3agpp4rcrsxnt0tr8v0t8kyu66327maxstq5ckh7u"},
+			err:         nil,
+			pos:         1,
 		},
 		{
-			commandLine:	[]string{"nostk","pubMessageTo","テストコンテント","c08805f9bd4849049325747a8086a3c0e069adeb19d8f59ec4e6b5157b7d3416"},
-			err:			nil,
-			pos:			1,
+			commandLine: []string{"nostk", "pubMessageTo", "テストコンテント", "c08805f9bd4849049325747a8086a3c0e069adeb19d8f59ec4e6b5157b7d3416"},
+			err:         nil,
+			pos:         1,
 		},
 	}
 
@@ -134,15 +134,15 @@ func TestGetForSubCmdKindTbl(t *testing.T) {
 
 func TestErrGetForSubCmdKindTbl(t *testing.T) {
 	list := NewSubCmdKindTbl()
-	tests := []struct{
+	tests := []struct {
 		commandLine []string
-		err			error
-		pos			int
+		err         error
+		pos         int
 	}{
 		{
-			commandLine:	[]string{"nostk","pubRaw","テストコンテント","c08805f9bd4849049325747a8086a3c0e069adeb19d8f59ec4e6b5157b7d3416"},
-			err:			errors.New("Not supported subcommand pubRaw"),
-			pos:			1,
+			commandLine: []string{"nostk", "pubRaw", "テストコンテント", "c08805f9bd4849049325747a8086a3c0e069adeb19d8f59ec4e6b5157b7d3416"},
+			err:         errors.New("Not supported subcommand pubRaw"),
+			pos:         1,
 		},
 	}
 
@@ -167,26 +167,26 @@ func TestNewConvArgsTagsTbl(t *testing.T) {
 
 func TestHasSubcommand(t *testing.T) {
 	tbl := NewConvArgsTagsTbl()
-	tests := []struct{
+	tests := []struct {
 		commandLine []string
-		err			error
-		pos			int
+		err         error
+		pos         int
 	}{
 		{
-			commandLine:	[]string{"nostk","pubMessage","テストコンテント"},
-			err:			nil,
+			commandLine: []string{"nostk", "pubMessage", "テストコンテント"},
+			err:         nil,
 		},
 		{
-			commandLine:	[]string{"nostk","pubMessage","テストコンテント","nsfwの理由"},
-			err:			nil,
+			commandLine: []string{"nostk", "pubMessage", "テストコンテント", "nsfwの理由"},
+			err:         nil,
 		},
 		{
-			commandLine:	[]string{"nostk","pubMessageTo","テストコンテント","npub1czyqt7dafpysfye9w3agpp4rcrsxnt0tr8v0t8kyu66327maxstq5ckh7u"},
-			err:			nil,
+			commandLine: []string{"nostk", "pubMessageTo", "テストコンテント", "npub1czyqt7dafpysfye9w3agpp4rcrsxnt0tr8v0t8kyu66327maxstq5ckh7u"},
+			err:         nil,
 		},
 		{
-			commandLine:	[]string{"nostk","pubMessageTo","テストコンテント","c08805f9bd4849049325747a8086a3c0e069adeb19d8f59ec4e6b5157b7d3416"},
-			err:			nil,
+			commandLine: []string{"nostk", "pubMessageTo", "テストコンテント", "c08805f9bd4849049325747a8086a3c0e069adeb19d8f59ec4e6b5157b7d3416"},
+			err:         nil,
 		},
 	}
 
@@ -199,14 +199,14 @@ func TestHasSubcommand(t *testing.T) {
 
 func TestErrHasSubcommand(t *testing.T) {
 	tbl := NewConvArgsTagsTbl()
-	tests := []struct{
+	tests := []struct {
 		commandLine []string
-		err			error
-		pos			int
+		err         error
+		pos         int
 	}{
 		{
-			commandLine:	[]string{"nostk","pubRaw","テストコンテント","c08805f9bd4849049325747a8086a3c0e069adeb19d8f59ec4e6b5157b7d3416"},
-			err:			errors.New("Not supported subcommand pubRaw"),
+			commandLine: []string{"nostk", "pubRaw", "テストコンテント", "c08805f9bd4849049325747a8086a3c0e069adeb19d8f59ec4e6b5157b7d3416"},
+			err:         errors.New("Not supported subcommand pubRaw"),
 		},
 	}
 
@@ -218,34 +218,33 @@ func TestErrHasSubcommand(t *testing.T) {
 }
 
 func TestBuildJson(t *testing.T) {
-	tests := []struct{
+	tests := []struct {
 		commandLine []string
-		err			error
+		err         error
 	}{
 		{
-			commandLine:	[]string{"nostk","pubMessage","テストコンテント"},
-			err:			nil,
+			commandLine: []string{"nostk", "pubMessage", "テストコンテント"},
+			err:         nil,
 		},
 		{
-			commandLine:	[]string{"nostk","pubMessage","テストコンテント","nsfwの理由"},
-			err:			nil,
+			commandLine: []string{"nostk", "pubMessage", "テストコンテント", "nsfwの理由"},
+			err:         nil,
 		},
 		{
-			commandLine:	[]string{"nostk","pubMessageTo","テストコンテント","npub1czyqt7dafpysfye9w3agpp4rcrsxnt0tr8v0t8kyu66327maxstq5ckh7u"},
-			err:			nil,
+			commandLine: []string{"nostk", "pubMessageTo", "テストコンテント", "npub1czyqt7dafpysfye9w3agpp4rcrsxnt0tr8v0t8kyu66327maxstq5ckh7u"},
+			err:         nil,
 		},
 		{
-			commandLine:	[]string{"nostk","pubMessageTo","テストコンテント","c08805f9bd4849049325747a8086a3c0e069adeb19d8f59ec4e6b5157b7d3416"},
-			err:			nil,
+			commandLine: []string{"nostk", "pubMessageTo", "テストコンテント", "c08805f9bd4849049325747a8086a3c0e069adeb19d8f59ec4e6b5157b7d3416"},
+			err:         nil,
 		},
 	}
 	for i := range tests {
 		strJson, err := buildJson(tests[i].commandLine)
 		if err != nil {
-			t.Fatalf("commandLine : %v, got error: %v, Want error: nil",tests[i].commandLine,  err)
+			t.Fatalf("commandLine : %v, got error: %v, Want error: nil", tests[i].commandLine, err)
 		} else {
-			t.Logf("recieve json %v",strJson)
+			t.Logf("recieve json %v", strJson)
 		}
 	}
 }
-

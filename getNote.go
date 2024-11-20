@@ -39,8 +39,8 @@ type Filters struct {
 // }}}
 
 type Recieve struct {
-	RelayUrl string			// data.Relay.URL
-	Event    nostr.Event	// data.Event
+	RelayUrl string      // data.Relay.URL
+	Event    nostr.Event // data.Event
 }
 
 type UserFilter struct {
@@ -136,7 +136,7 @@ func (uf *UserFilter) replaceUserFilter(ev nostr.RelayEvent) (string, error) {
 // }}}
 
 /* getNote {{{
-*/
+ */
 
 func getNote(args []string, cc confClass) error {
 	var ut int64 = 0
@@ -231,7 +231,7 @@ func getNote(args []string, cc confClass) error {
 		ch := pool.SubManyEose(ctx, rs, filters)
 		for event := range ch {
 			conv := convertRelayEventToRecieve(&event)
-			if tmp, err  := reb.replaceToBech32(conv); err != nil {
+			if tmp, err := reb.replaceToBech32(conv); err != nil {
 				return err
 			} else {
 				recieveData = append(recieveData, tmp)
@@ -247,7 +247,7 @@ func getNote(args []string, cc confClass) error {
 		if data, err := json5.Marshal(recieveData); err != nil {
 			return err
 		} else {
-			fmt.Printf("%v",string(data))
+			fmt.Printf("%v", string(data))
 		}
 		return nil
 	}
@@ -256,7 +256,7 @@ func getNote(args []string, cc confClass) error {
 // }}}
 
 /* replaceNsfw {{{
-*/
+ */
 func replaceNsfw(e nostr.RelayEvent) string {
 	if checkNsfw(e.Tags) == false {
 		return e.Content
@@ -268,7 +268,7 @@ func replaceNsfw(e nostr.RelayEvent) string {
 // }}}
 
 /* getNsfwReason {{{
-*/
+ */
 func getNsfwReason(tgs nostr.Tags) string {
 	if checkNsfw(tgs) == false {
 		return ""
@@ -290,7 +290,7 @@ func getNsfwReason(tgs nostr.Tags) string {
 // }}}
 
 /* checkNsfw {{{
-*/
+ */
 func checkNsfw(tgs nostr.Tags) bool {
 	if len(tgs) < 1 {
 		return false
@@ -311,7 +311,7 @@ func checkNsfw(tgs nostr.Tags) bool {
 // }}}
 
 /* convertRelayEventToRecieve {{{
-*/
+ */
 func convertRelayEventToRecieve(data *nostr.RelayEvent) Recieve {
 	return Recieve{
 		RelayUrl: data.Relay.URL,
@@ -322,16 +322,17 @@ func convertRelayEventToRecieve(data *nostr.RelayEvent) Recieve {
 // }}}
 
 /* replaceToBech32 {{{
-*/
-type replaceEnginForBech32 struct{
-	cache			Recieve
+ */
+type replaceEnginForBech32 struct {
+	cache Recieve
 }
-func (r replaceEnginForBech32)replaceToBech32(data Recieve) (Recieve, error) {
+
+func (r replaceEnginForBech32) replaceToBech32(data Recieve) (Recieve, error) {
 	r.cache = data
 	// go-nostr のコメントには event ID と書かれているが
 	// 実際には note ID が入っているので注意！！
 	// event ID だと思って EncordEvent を呼び出すとえらいことに！！
-	if tmpdata, err:= nip19.EncodeNote(data.Event.ID); err != nil {
+	if tmpdata, err := nip19.EncodeNote(data.Event.ID); err != nil {
 		return data, err
 	} else {
 		data.Event.ID = tmpdata
@@ -348,7 +349,7 @@ func (r replaceEnginForBech32)replaceToBech32(data Recieve) (Recieve, error) {
 	}
 	return data, nil
 }
-func (r replaceEnginForBech32)replaceTagsToBech32(data Recieve) (Recieve, error) {
+func (r replaceEnginForBech32) replaceTagsToBech32(data Recieve) (Recieve, error) {
 	mbl := NewModifyBech32List()
 	modified := data
 	for tagIndex, tag := range data.Event.Tags {
@@ -378,6 +379,7 @@ func (r replaceEnginForBech32)replaceTagsToBech32(data Recieve) (Recieve, error)
 	}
 	return modified, nil
 }
+
 /*
 この関数は引数で指定されたタグ配列の Hex 文字列を実際に
 Bech32 文字列に変換する。
@@ -386,7 +388,7 @@ replaceTagsToBech32() から呼び出すことのみを前提にしており
 他の言語であれば private メンバー関数であり、コードの他の部分からの
 参照は行われないことを前提としている。
 */
-func (r replaceEnginForBech32)convert(data Recieve, tagIndex int, elementIndex int, format string) (Recieve, error) {
+func (r replaceEnginForBech32) convert(data Recieve, tagIndex int, elementIndex int, format string) (Recieve, error) {
 	switch format {
 	case "nevent":
 		// tag 内の PubKey の有無をチェックすること
@@ -421,4 +423,3 @@ func (r replaceEnginForBech32)convert(data Recieve, tagIndex int, elementIndex i
 }
 
 // }}}
-

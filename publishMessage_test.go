@@ -6,10 +6,10 @@ import (
 )
 
 func TestSetHashTags(t *testing.T) {
-	tests := []struct{
+	tests := []struct {
 		content string
-		tgs 	nostr.Tags
-		length	int
+		tgs     nostr.Tags
+		length  int
 	}{
 		{
 			content: "このテストではハッシュタグは入っていません",
@@ -58,32 +58,32 @@ func TestSetHashTags(t *testing.T) {
 }
 
 func TestContainsNsec1(t *testing.T) {
-	tests := []struct{
-		str string
+	tests := []struct {
+		str    string
 		result bool
 	}{
 		{
-			str: "私はみつぐ",
-			result:false,
-		},
-		{
-			str: "私はnpub1czyqt7dafpysfye9w3agpp4rcrsxnt0tr8v0t8kyu66327maxstq5ckh7u",
+			str:    "私はみつぐ",
 			result: false,
 		},
 		{
-			str: "私はc08805f9bd4849049325747a8086a3c0e069adeb19d8f59ec4e6b5157b7d3416",
+			str:    "私はnpub1czyqt7dafpysfye9w3agpp4rcrsxnt0tr8v0t8kyu66327maxstq5ckh7u",
 			result: false,
 		},
 		{
-			str: "私はnsec1czyqt7dafpysfye9w3agpp4rcrsxnt0tr8v0t8kyu66327maxstq5ckh7u",
+			str:    "私はc08805f9bd4849049325747a8086a3c0e069adeb19d8f59ec4e6b5157b7d3416",
+			result: false,
+		},
+		{
+			str:    "私はnsec1czyqt7dafpysfye9w3agpp4rcrsxnt0tr8v0t8kyu66327maxstq5ckh7u",
 			result: true,
 		},
 		{
-			str: "私はほげやまほげことの息子のnsec1czyqt7dafpysfye9w3agpp4rcrsxnt0tr8v0t8kyu66327maxstq5ckh7u",
+			str:    "私はほげやまほげことの息子のnsec1czyqt7dafpysfye9w3agpp4rcrsxnt0tr8v0t8kyu66327maxstq5ckh7u",
 			result: true,
 		},
 		{
-			str: "私はほげやまほげことの息子 https://nostrcheck.me/media/c08805f9bd4849049325747a8086a3c0e069adeb19d8f59ec4e6b5157b7d3416/c4186ee638cf8500313952779b14495288cea51b4c56d6892a99b0c2ffb38fa8.webp",
+			str:    "私はほげやまほげことの息子 https://nostrcheck.me/media/c08805f9bd4849049325747a8086a3c0e069adeb19d8f59ec4e6b5157b7d3416/c4186ee638cf8500313952779b14495288cea51b4c56d6892a99b0c2ffb38fa8.webp",
 			result: false,
 		},
 	}

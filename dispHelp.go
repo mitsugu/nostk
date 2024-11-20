@@ -6,7 +6,7 @@ import (
 )
 
 /* dispHelp {{{
-*/
+ */
 func dispHelp() {
 	usageTxt := `Usage :
 	nostk <sub-command> [param...]
@@ -59,4 +59,3 @@ func dispHelp() {
 }
 
 // }}}
-

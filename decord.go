@@ -8,14 +8,16 @@ import (
 	//"log"
 	"os"
 	//"reflect"
-	)
+)
+
 /*
 decord
 */
-type Decorder struct {}
+type Decorder struct{}
+
 func (r Decorder) decord(str string) (string, string, error) {
-	if pref,temp, err := nip19.Decode(str); err != nil {
-		return "","", err
+	if pref, temp, err := nip19.Decode(str); err != nil {
+		return "", "", err
 	} else {
 		switch temp.(type) {
 		case string:

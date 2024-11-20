@@ -12,26 +12,30 @@ import (
 )
 
 const (
-	lengthHexData	= 64
-	indexTagName	= 0
+	Main          = "main.main"
+	PubMessage    = "main.publishMessage"
+	PubMessageTo  = "main.publishMessageTo"
+	lengthHexData = 64
+	indexTagName  = 0
 )
 
-/* publishRaw {{{
+/*
+	 publishRaw {{{
 
-	Data format example:
-		{
-			"kind": kind string,
-			"content": content string,
-			"tags": [
-				"d": status's type string,
-					 general or music
-				"expiration": expiration's number (optional)
-				"r": []relay's url, (optional)
-					 ex)
-					 	https://nostr.world
-						spotify:search:Intergalatic%20-%20Beastie%20Boys
-			]
-		}
+		Data format example:
+			{
+				"kind": kind string,
+				"content": content string,
+				"tags": [
+					"d": status's type string,
+						 general or music
+					"expiration": expiration's number (optional)
+					"r": []relay's url, (optional)
+						 ex)
+						 	https://nostr.world
+							spotify:search:Intergalatic%20-%20Beastie%20Boys
+				]
+			}
 */
 func publishRaw(args []string, cc confClass) error {
 	var err error
@@ -39,7 +43,8 @@ func publishRaw(args []string, cc confClass) error {
 
 	pc, _, _, _ := runtime.Caller(1)
 	fn := runtime.FuncForPC(pc)
-	if fn.Name() == Main {
+	switch fn.Name() {
+	case Main:
 		switch len(args) {
 		case 2:
 			// Receive content from standard input
@@ -53,7 +58,9 @@ func publishRaw(args []string, cc confClass) error {
 		default:
 			return errors.New("Invalid pubRaw subcommand argument")
 		}
-	} else {
+	case PubMessage:
+		strjson = args[2]
+	default:
 		return errors.New("pubRaw function call from illegal function")
 	}
 
@@ -101,7 +108,7 @@ func publishRaw(args []string, cc confClass) error {
 // }}}
 
 /* mkEvent {{{
-*/
+ */
 func mkEvent(pJson interface{}, cc confClass) (nostr.Event, error) {
 	var ev nostr.Event
 	kind, err := getKind(pJson)
@@ -115,12 +122,12 @@ func mkEvent(pJson interface{}, cc confClass) (nostr.Event, error) {
 	}
 
 	switch kind {
-	case 1:		// publish kind 1 message
-	case 6:		// publish Reposts
-	case 10000:	// publish mute list
-	case 10001:	// publish Pinned notes
-	case 30030:	// publish custom emoji list
-	case 30315:	// publish status
+	case 1: // publish kind 1 message
+	case 6: // publish Reposts
+	case 10000: // publish mute list
+	case 10001: // publish Pinned notes
+	case 30030: // publish custom emoji list
+	case 30315: // publish status
 	default:
 		return ev, errors.New("not yet suppoted kind")
 	}
@@ -176,7 +183,7 @@ func mkEvent(pJson interface{}, cc confClass) (nostr.Event, error) {
 // }}}
 
 /* getKind {{{
-*/
+ */
 func getKind(pJson interface{}) (int, error) {
 	kind, err := jsonpointer.Get(pJson, "/kind")
 	if err != nil {
@@ -195,7 +202,7 @@ func getKind(pJson interface{}) (int, error) {
 // }}}
 
 /* getContent {{{
-*/
+ */
 func getContent(pJson interface{}) (string, error) {
 	content, err := jsonpointer.Get(pJson, "/content")
 	if err != nil {
@@ -217,7 +224,7 @@ func getContent(pJson interface{}) (string, error) {
 // }}}
 
 /* addTagsFromJson {{{
-*/
+ */
 func addTagsFromJson(pJson interface{}, tgs *nostr.Tags) error {
 	jsonMap, ok := pJson.(map[string]interface{})
 	if !ok {
@@ -241,7 +248,9 @@ func addTagsFromJson(pJson interface{}, tgs *nostr.Tags) error {
 
 // }}}
 
-/* Error check function table {{{
+/*
+	Error check function table {{{
+
 IMPLEMENTED IN A FUTURE MAJOR VERSION
 */
 var defChkTblMap = map[string]map[int]string{
@@ -252,3 +261,4 @@ var defChkTblMap = map[string]map[int]string{
 
 // }}}
 
+// vim: set ts=2 sw=2 et:
