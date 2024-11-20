@@ -120,16 +120,19 @@ To display a content warning note, run the catEvent subcommand by specifying the
 "          it will be published as a content warning note.
 "
 command! -nargs=? NPM call Pubmessage(<f-args>)
-command! -nargs=? NPM call Pubmessage(<f-args>)
-function Pubmessage(...)
-	if a:0 >= 1
-		let l:buffer_contents = join(getline(1, '$'), "\n")
-		let l:command = "nostk pubMessage \"" . l:buffer_contents . "\" " . a:1
-		let l:command_output = system(l:command)
-		echo l:command_output
-	else
-		w ! nostk pubMessage
-	end
+function! Pubmessage(...) abort
+    let l:buffer_contents = join(getline(1, '$'), "\n")
+    let l:buffer_contents = substitute(l:buffer_contents, '"', '\\"', 'g')
+    let l:buffer_contents = substitute(l:buffer_contents, '`', '\\`', 'g')
+
+    if a:0 >= 1
+        let l:command = "nostk pubMessage \"" . l:buffer_contents . "\" " . a:1
+    else
+        let l:command = "nostk pubMessage \"" . l:buffer_contents . "\""
+    endif
+
+    let l:command_output = system(l:command)
+    echo l:command_output
 endfunction
 ```
 
@@ -139,7 +142,8 @@ endfunction
 "   2. execute next command on command-line
 "      : NPR
 "
-command! NPR call Pubraw() function Pubraw()
+command! NPR call Pubraw()
+function Pubraw()
 	let l:buffer_contents = join(getline(1, '$'), "\n")
 	let l:buffer_contents = substitute(l:buffer_contents, '"', '\\"', 'g')
 	let l:command = "nostk pubRaw \"" . l:buffer_contents . "\""
@@ -155,7 +159,7 @@ endfunction
 "        If you pass number as an argument,
 "          it will ask the relay to subscribe to number notes.
 "
-command! -nargs=? NCathome call Cathome(<f-args>)
+command! -nargs=? NCatHome call Cathome(<f-args>)
 function! Cathome(...)
 	if a:0 >= 1
 		let l:command = "nostk catHome " . a:1 . " | jq '.'"
@@ -175,7 +179,7 @@ endfunction
 "        If you pass number as an argument,
 "          it will ask the relay to subscribe to number notes.
 "
-command! -nargs=? NCatnsfw call Catnsfw(<f-args>)
+command! -nargs=? NCatNsfw call Catnsfw(<f-args>)
 function! Catnsfw(...)
 	if a:0 >= 1
 		let l:command = "nostk catNSFW " . a:1 . " | jq '.'"
@@ -195,7 +199,7 @@ endfunction
 "        If you pass number as an argument,
 "          it will ask the relay to subscribe to number notes.
 "
-command! -nargs=? NCatself call Catself(<f-args>)
+command! -nargs=? NCatSelf call Catself(<f-args>)
 function! Catself(...)
 	if a:0 >= 1
 		let l:command = "nostk catSelf " . a:1 . " | jq '.'"
@@ -217,9 +221,9 @@ endfunction
 "
 command! -nargs=1 NRemoveEvent call Removeevent(<f-args>)
 function! Removeevent(...)
-	let l:command = "nostk removeEvent "
+	let l:command = "nostk removeEvent"
 	for arg in a:000
-		let l:command .= arg
+		let l:command .= " " . arg
 	endfor
 	let l:command_output = system(l:command)
 	echo l:command_output
@@ -234,7 +238,7 @@ endfunction
 "      : NEmojireaction <custom emoji short code>
 "        custom emoji short code : Specify a custom emoji shortcode
 "
-command! -nargs=1 NEmojireaction call Emojireaction(<f-args>)
+command! -nargs=1 NEmojiReaction call Emojireaction(<f-args>)
 function! Emojireaction(stremoji)
 	let l:topline = line('.')
 	let l:btmline = l:topline + 3
