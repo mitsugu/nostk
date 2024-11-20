@@ -321,14 +321,17 @@ func convertRelayEventToRecieve(data *nostr.RelayEvent) Recieve {
 
 // }}}
 
-/* replaceToBech32
+/* replaceToBech32 {{{
 */
 type replaceEnginForBech32 struct{
 	cache			Recieve
 }
 func (r replaceEnginForBech32)replaceToBech32(data Recieve) (Recieve, error) {
 	r.cache = data
-	if tmpdata, err:= nip19.EncodeEvent(data.Event.ID, []string{data.RelayUrl}, data.Event.PubKey); err != nil {
+	// go-nostr のコメントには event ID と書かれているが
+	// 実際には note ID が入っているので注意！！
+	// event ID だと思って EncordEvent を呼び出すとえらいことに！！
+	if tmpdata, err:= nip19.EncodeNote(data.Event.ID); err != nil {
 		return data, err
 	} else {
 		data.Event.ID = tmpdata
@@ -416,5 +419,6 @@ func (r replaceEnginForBech32)convert(data Recieve, tagIndex int, elementIndex i
 	}
 	return data, nil
 }
+
 // }}}
 
