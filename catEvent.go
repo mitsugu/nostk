@@ -10,6 +10,17 @@ import (
 	"time"
 )
 
+var replacer = strings.NewReplacer(
+	"\n", "\\n",
+	"\b", "\\b",
+	"\f", "\\f",
+	"\r", "\\r",
+	"\t", "\\t",
+	"\\", "\\\\",
+	"/", "\\/",
+	"\"", "\\\"",
+)
+
 /*
 catEvent {{{
 */
@@ -73,15 +84,7 @@ func catEvent(args []string, cc confClass) error {
 		for event := range ch {
 			switch event.Kind {
 			case 1:
-				buf := event.Content
-				buf = strings.Replace(buf, "\n", "\\n", -1)
-				buf = strings.Replace(buf, "\b", "\\b", -1)
-				buf = strings.Replace(buf, "\f", "\\f", -1)
-				buf = strings.Replace(buf, "\r", "\\r", -1)
-				buf = strings.Replace(buf, "\t", "\\t", -1)
-				buf = strings.Replace(buf, "\\", "\\\\", -1)
-				buf = strings.Replace(buf, "/", "\\/", -1)
-				buf = strings.Replace(buf, "\"", "\\\"", -1)
+				buf := replacer.Replace(event.Content)
 				fmt.Printf("\"%v\": {\"date\": \"%v\", \"pubkey\": \"%v\", \"content\": \"%v\"},\n", event.ID, event.CreatedAt, event.PubKey, buf)
 			}
 		}
