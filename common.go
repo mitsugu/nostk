@@ -24,8 +24,7 @@ For checking nostr.Tags for undesired data, etc.
 // class definition
 type Tags struct{}
 
-/*
-	Tags.hasPrefix {{{
+/* Tags.hasPrefix {{{
 
 WHY WAS IT WRITTEN?
 The purpose is to check whether nostr.Tags contains a private key,
@@ -44,8 +43,7 @@ func (r Tags) hasPrefix(tgs nostr.Tags, pref string) bool {
 
 // }}}
 
-/*
-	checkTags {{{
+/* checkTags {{{
 
 WHAT'S THIS?
 Checks whether the tag is the target of processing of the specified kind.
@@ -57,6 +55,7 @@ func NewChkTblMap() ChkTblMap {
 		1:     {"content-warning", "client", "e", "emoji", "expiration", "p", "q", "r", "t"},
 		6:     {"e", "p"},
 		7:     {"e", "emoji", "k", "p"},
+		20:     {"title", "imeta", "L", "l", "location", "m", "p", "t", "x"},
 		10000: {"e", "p", "t", "word"},
 		10001: {"e"},
 		30030: {"d", "title", "emoji"},
@@ -428,6 +427,7 @@ func NewModifyBech32TagsList() modifyBech32TagsTblMap {
 	return modifyBech32TagsTblMap{
 		1:     {"e", "p", "q"},
 		6:     {"e", "p"},
+		20:    {"p"},
 		10000: {"e", "p"},
 		10001: {"e"},
 	}

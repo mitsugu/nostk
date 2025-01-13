@@ -126,6 +126,7 @@ func mkEvent(pJson interface{}, cc confClass) (nostr.Event, error) {
 	case 1: // publish kind 1 message
 	case 6: // publish Reposts
   case 7: // publish emojiReaction
+  case 20:  // publish Picture-first feeds
 	case 10000: // publish mute list
 	case 10001: // publish Pinned notes
 	case 30030: // publish custom emoji list
@@ -250,8 +251,7 @@ func addTagsFromJson(pJson interface{}, tgs *nostr.Tags) error {
 
 // }}}
 
-/*
-	Error check function table {{{
+/* Error check function table {{{
 
 IMPLEMENTED IN A FUTURE MAJOR VERSION
 */
