@@ -4,7 +4,7 @@ go 1.23.2
 
 require (
 	github.com/mattn/go-jsonpointer v0.0.1
-	github.com/nbd-wtf/go-nostr v0.46.0
+	github.com/nbd-wtf/go-nostr v0.47.0
 	github.com/yosuke-furukawa/json5 v0.1.1
 )
 
@@ -28,5 +28,5 @@ require (
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f // indirect
-	golang.org/x/sys v0.27.0 // indirect
+	golang.org/x/sys v0.29.0 // indirect
 )
