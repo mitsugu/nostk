@@ -4,7 +4,7 @@ go 1.24.1
 
 require (
 	github.com/mattn/go-jsonpointer v0.0.1
-	github.com/nbd-wtf/go-nostr v0.50.5
+	github.com/nbd-wtf/go-nostr v0.51.2
 	github.com/yosuke-furukawa/json5 v0.1.1
 )
 
@@ -17,7 +17,6 @@ require (
 	github.com/bytedance/sonic/loader v0.2.4 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect
 	github.com/coder/websocket v1.8.12 // indirect
-	github.com/colduction/nocopy v0.2.0 // indirect
 	github.com/decred/dcrd/crypto/blake256 v1.1.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
