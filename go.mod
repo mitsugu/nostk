@@ -4,7 +4,7 @@ go 1.24.1
 
 require (
 	github.com/mattn/go-jsonpointer v0.0.1
-	github.com/nbd-wtf/go-nostr v0.51.3
+	github.com/nbd-wtf/go-nostr v0.51.5
 	github.com/yosuke-furukawa/json5 v0.1.1
 )
 
