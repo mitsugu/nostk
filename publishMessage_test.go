@@ -47,10 +47,26 @@ func TestSetHashTags(t *testing.T) {
 			},
 			length: 1,
 		},
+		{
+			content: "このテストでは #test を入れてみた",
+			tgs: nostr.Tags{
+				{"t", "test"},
+			},
+			length: 1,
+		},
+		{
+			content: "このテストでは #TeSt を入れてみた",
+			tgs: nostr.Tags{
+				{"t", "TeSt"},
+			},
+			length: 0,
+		},
 	}
 	for _, tc := range tests {
 		tgs := nostr.Tags{}
-		setHashTags(tc.content, &tgs)
+		if err := setHashTags(tc.content, &tgs); err != nil {
+			t.Fatalf("conent: %v, error: %v", tc.content, err)
+		}
 		if tc.length != len(tgs) {
 			t.Fatalf("conent : %v, length: %v, tgs : %#v", tc.content, len(tgs), tgs)
 		}

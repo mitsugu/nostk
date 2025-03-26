@@ -256,7 +256,7 @@ func excludeHashtagsParsign(src string) (string, error) {
 
 /* setHashTags {{{
  */
-func setHashTags(buf string, tgs *nostr.Tags) {
+func setHashTags(buf string, tgs *nostr.Tags) error {
 	const strexp = `(?:^|\s)([#﹟＃][^#\s﹟＃]+[^\s|$])`
 
 	re := regexp.MustCompile(strexp)
@@ -266,9 +266,14 @@ func setHashTags(buf string, tgs *nostr.Tags) {
 		t.addTagName("t")
 		rtmp := regexp.MustCompile(`[\s﹟＃#]`)
 		result := rtmp.ReplaceAllString(matches[i], "")
+		if strings.ContainsAny(result, "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
+			return errors.New("The hashtag contains characters other than lowercase letters.")
+		}
+
 		t.addTagValue(result)
 		*tgs = append(*tgs, t.getNostrTag())
 	}
+	return nil
 }
 
 // }}}

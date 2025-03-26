@@ -146,7 +146,10 @@ func mkEvent(pJson interface{}, cc confClass) (nostr.Event, error) {
 	if err != nil {
 		return ev, err
 	}
-	setHashTags(tmpstr, &tgs)
+	if err := setHashTags(tmpstr, &tgs); err != nil {
+    return ev, err;
+  }
+
 
 	addTagsFromJson(pJson, &tgs)
 
