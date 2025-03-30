@@ -318,13 +318,12 @@ func publishProfile(cc confClass) error {
 		return err
 	}
 
-	pr := strings.Replace(s, "\\n", "\n", -1)
 	ev := nostr.Event{
 		PubKey:    pk,
 		CreatedAt: nostr.Now(),
 		Kind:      nostr.KindProfileMetadata,
 		Tags:      nil,
-		Content:   string(pr),
+		Content:   s,
 	}
 
 	// calling Sign sets the event ID field and the event Sig field
