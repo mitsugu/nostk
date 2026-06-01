@@ -127,6 +127,7 @@ func mkEvent(pJson interface{}, cc confClass) (nostr.Event, error) {
 	case 6: // publish Reposts
   case 7: // publish emojiReaction
   case 20:  // publish Picture-first feeds
+  case 42:  // publish raw json data
 	case 10000: // publish mute list
 	case 10001: // publish Pinned notes
 	case 30030: // publish custom emoji list

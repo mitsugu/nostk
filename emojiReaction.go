@@ -10,21 +10,22 @@ import (
 	"unicode/utf8"
 )
 
-/* emojiRreaction {{{
-		[infomation for develop]
-		usage:
-			nostk emojiReaction <event_id> <public_key> <content>
-				note:
-					event_id: hex
-					public_key: hex
+/*
+	 emojiRreaction {{{
+			[infomation for develop]
+			usage:
+				nostk emojiReaction <event_id> <public_key> <content>
+					note:
+						event_id: hex
+						public_key: hex
 
-		kind: 7
-		content: emoji (include custom emoji short code)
-		tags [
-			"e": event id (hex)
-			"p": pubkey (hex)
-			"emoji": short_code, image_url (optional)
-		]
+			kind: 7
+			content: emoji (include custom emoji short code)
+			tags [
+				"e": event id (hex)
+				"p": pubkey (hex)
+				"emoji": short_code, image_url (optional)
+			]
 */
 func emojiReaction(args []string, cc confClass) error {
 	dataRawArg := RawArg{}
@@ -91,7 +92,7 @@ func emojiReaction(args []string, cc confClass) error {
 			t = append(t, args[i])
 			tgs = append(tgs, t)
 		case 5: // content に "+"、"-"、絵文字またはカスタム絵文字の
-				// ショートコードを設定
+			// ショートコードを設定
 			dataRawArg.Content = args[i]
 		}
 	}
@@ -162,4 +163,3 @@ func isShortCode(s string) bool {
 }
 
 // }}}
-

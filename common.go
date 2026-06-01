@@ -53,13 +53,14 @@ type ChkTblMap map[int][]string
 func NewChkTblMap() ChkTblMap {
 	return ChkTblMap{
 		1:     {"content-warning", "client", "e", "emoji", "expiration", "p", "q", "r", "t"},
-		6:     {"e", "p"},
-		7:     {"e", "emoji", "k", "p"},
+		6:		{"e", "p"},
+		7:		{"e", "emoji", "k", "p"},
 		20:     {"title", "imeta", "L", "l", "location", "m", "p", "t", "x"},
-		10000: {"e", "p", "t", "word"},
-		10001: {"e"},
-		30030: {"d", "title", "emoji"},
-		30315: {"d", "emoji", "expiration", "r"},
+		42:		{"e"},
+		10000:	{"e", "p", "t", "word"},
+		10001:	{"e"},
+		30030:	{"d", "title", "emoji"},
+		30315:	{"d", "emoji", "expiration", "r"},
 	}
 }
 func (r ChkTblMap) sliceToMap(kind int) map[string]struct{} {
